@@ -1,0 +1,23 @@
+{
+	"name": "webchimp/chapi",
+	"description": "CHIMP API",
+	"type": "project",
+	"require": {
+		"webchimp/dabbie": "dev-main",
+		"webchimp/norm": "dev-master",
+		"sociallydev/spaces-api": "^3.3"
+	},
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"CHAPI\\": "src/"
+		}
+	},
+	"authors": [
+		{
+			"name": "Rodrigo Tejero",
+			"email": "rodrigo.tejero@chimp.mx"
+		}
+	],
+	"minimum-stability": "stable"
+}
