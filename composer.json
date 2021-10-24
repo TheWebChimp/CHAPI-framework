@@ -4,8 +4,7 @@
 	"type": "project",
 	"require": {
 		"webchimp/dabbie": "dev-main",
-		"webchimp/norm": "dev-master",
-		"sociallydev/spaces-api": "^3.3"
+		"webchimp/norm": "dev-master"
 	},
 	"license": "MIT",
 	"autoload": {
