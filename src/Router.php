@@ -103,8 +103,33 @@
 		 * @param  string  $route     Parametrized route
 		 * @param  string  $functName Handler function name
 		 */
-		function prepend($route, $functName) {
+		function prepend($route, $functName, $method) {
 			$this->routes = ["{$method}::{$route}" => $functName] + $this->routes;
+		}
+
+		function all($route, $functName, $prepend = false) {
+			if($prepend) $this->prepend($route, $functName, '*');
+			else $this->add($route, $functName, '*');
+		}
+
+		function get($route, $functName, $prepend = false) {
+			if($prepend) $this->prepend($route, $functName, 'get');
+			else $this->add($route, $functName, 'get');
+		}
+
+		function post($route, $functName, $prepend = false) {
+			if($prepend) $this->prepend($route, $functName, 'post');
+			else $this->add($route, $functName, 'post');
+		}
+
+		function put($route, $functName, $prepend = false) {
+			if($prepend) $this->prepend($route, $functName, 'put');
+			else $this->add($route, $functName, 'put');
+		}
+
+		function delete($route, $functName, $prepend = false) {
+			if($prepend) $this->prepend($route, $functName, 'delete');
+			else $this->add($route, $functName, 'delete');
 		}
 
 		/**
