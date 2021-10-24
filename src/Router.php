@@ -94,8 +94,8 @@
 		 * @param  string  $functName Handler function name
 		 * @param  boolean $prepend   If set, the route will be inserted at the beginning
 		 */
-		function add($route, $functName) {
-			$this->routes[$route] = $functName;
+		function add($route, $functName, $method = '*') {
+			$this->routes["{$method}::{$route}"] = $functName;
 		}
 
 		/**
@@ -104,7 +104,7 @@
 		 * @param  string  $functName Handler function name
 		 */
 		function prepend($route, $functName) {
-			$this->routes = [$route => $functName] + $this->routes;
+			$this->routes = ["{$method}::{$route}" => $functName] + $this->routes;
 		}
 
 		/**
@@ -171,7 +171,7 @@
 
 				$this->response->setStatus(404);
 				$fn();
-			});
+			}, '*');
 		}
 
 		/**
@@ -188,14 +188,18 @@
 		 * @return boolean        		TRUE if the route matched with a handler, FALSE otherwise
 		 */
 		function match($spec_route) {
-			global $app;
 			$ret = false;
 			# And try to match the route with the registered ones
 			$matches = [];
+			$cur_method = $this->request->getMethod();
 
 			$matched_route = false;
 
 			foreach ($this->routes as $route => $handler) {
+
+				//removing and checking the method
+				list($method, $route) = explode('::', $route);
+				if($method != '*' && strtolower($method) != $cur_method) continue;
 
 				$route = str_replace('/', "\/", $route);
 				$route = str_replace('[', '(?:', $route);
@@ -222,7 +226,6 @@
 		 * @return boolean TRUE if routing has succeeded, FALSE otherwise
 		 */
 		function routeRequest() {
-			global $app;
 			$ret = false;
 
 			# Get the current URL
@@ -257,9 +260,9 @@
 			} else {
 
 				//Check if we have a 404 route set
-				if(isset($this->getRoutes()['404'])) {
+				if(isset($this->getRoutes()['*::404'])) {
 
-					call_user_func_array($this->getRoutes()['404'], []);
+					call_user_func_array($this->getRoutes()['*::404'], []);
 					$this->response->setStatus('404');
 					$ret = true;
 
