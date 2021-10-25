@@ -2,6 +2,8 @@
 
 	namespace CHAPI;
 
+	include 'utilities.inc.php';
+
 	class Request {
 
 		/**
