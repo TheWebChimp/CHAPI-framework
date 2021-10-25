@@ -24,6 +24,7 @@
 		protected $profile;
 		protected $request;
 		protected $response;
+		protected $base_dir;
 		protected $db;
 
 		protected $app_title;
@@ -48,6 +49,8 @@
 			if(!BASE_DIR) {
 				throw new \InvalidArgumentException(sprintf('CHAPI Error: BASE_DIR constant not defined'));
 			}
+
+			$this->base_dir = BASE_DIR;
 
 			// Getting app profile
 			(new DotEnv(BASE_DIR . '/.env'))->load();
@@ -125,7 +128,12 @@
 		 */
 		public static function log_to_file($data, $log_file = '') {
 			$app = App::getInstance();
-			$log_file = $log_file ? $log_file : date('Y-m');
+
+			if (!file_exists($app->baseDir('/log'))) {
+				mkdir($app->baseDir('/log'), 0777, true);
+			}
+
+			$log_file = $log_file ? $log_file : date('Y-m-d');
 			$file = fopen( $app->baseDir("/log/{$log_file}.log"), 'a');
 			$date = date('Y-m-d H:i:s');
 			if(is_array($data) || is_object($data)) {
@@ -133,11 +141,6 @@
 			}
 			fwrite($file, "{$date} - {$data}\n");
 			fclose($file);
-		}
-
-		static function routeRequest() {
-
-			echo "WAX";
 		}
 
 		/**
