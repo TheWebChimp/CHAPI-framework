@@ -104,17 +104,31 @@
 		}
 
 		/**
+		 * Get base folder
+		 * @param  string  $path Path to append
+		 * @param  boolean $echo Whether to print the resulting string or not
+		 * @return string        The well-formed path
+		 */
+		function baseDir($path = '', $echo = false) {
+			$ret = sprintf('%s%s', $this->base_dir, $path);
+			if($echo) {
+				echo $ret;
+			}
+			return $ret;
+		}
+
+		/**
 		 * Log something to file
 		 * @param  mixed  $data     What to log
 		 * @param  string $log_file Log name, without extension
 		 * @return nothing
 		 */
 		public static function log_to_file($data, $log_file = '') {
-			global $app;
+			$app = App::getInstance();
 			$log_file = $log_file ? $log_file : date('Y-m');
 			$file = fopen( $app->baseDir("/log/{$log_file}.log"), 'a');
 			$date = date('Y-m-d H:i:s');
-			if ( is_array($data) || is_object($data) ) {
+			if(is_array($data) || is_object($data)) {
 				$data = json_encode($data);
 			}
 			fwrite($file, "{$date} - {$data}\n");
@@ -125,5 +139,164 @@
 
 			echo "WAX";
 		}
+
+		/**
+		 * Sanitize the given string (slugify it)
+		 * @param  string $str       The string to sanitize
+		 * @param  array  $replace   Optional, an array of characters to replace
+		 * @param  string $delimiter Optional, specify a custom delimiter
+		 * @return string            Sanitized string
+		 */
+		function toAscii($str, $replace = [], $delimiter = '-') {
+			setlocale(LC_ALL, 'en_US.UTF8');
+			# Remove spaces
+			if( !empty($replace) ) {
+				$str = str_replace((array)$replace, ' ', $str);
+			}
+			# Remove non-ascii characters
+			$clean = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+			# Remove non alphanumeric characters and lowercase the result
+			$clean = preg_replace("/[^a-zA-Z0-9\/_|+ -]/", '', $clean);
+			$clean = strtolower(trim($clean, '-'));
+			# Remove other unwanted characters
+			$clean = preg_replace("/[\/_|+ -]+/", $delimiter, $clean);
+			return $clean;
+		}
+
+		function slugify($str, $replace = [], $delimiter = '-') {
+			return $this->toAscii($str, $replace, $delimiter);
+		}
+
+		/**
+		 * Hash the specified token
+		 * @param  mixed  $action  Action name(s), maybe a single string or an array of strings
+		 * @param  boolean $echo   Whether to output the resulting string or not
+		 * @return string          The hashed token
+		 */
+		function hashToken($action, $echo = false) {
+			if(is_array($action)) {
+				$action_str = '';
+				foreach ($action as $item) {
+					$action_str .= $item;
+				}
+				$ret = md5($this->token_salt.$action_str);
+			} else {
+				$ret = md5($this->token_salt.$action);
+			}
+			if($echo) echo $ret;
+			return $ret;
+		}
+
+		/**
+		 * Hash the specified password
+		 * @param  string  $password 	Plain-text password
+		 * @param  boolean $echo   		Whether to output the resulting string or not
+		 * @return string          		The hashed password
+		 */
+		function hashPassword($password, $echo = false) {
+			$ret = md5($this->pass_salt.$password);
+			if($echo) echo $ret;
+			return $ret;
+		}
+
+		/**
+		 * Validate the given token with the specified action
+		 * @param  string $token  Hashed token
+		 * @param  string $action Action name
+		 * @return boolean        True if the token is valid, False otherwise
+		 */
+		function validateToken($token, $action) {
+			$check = $this->hashToken($action);
+			return ($token == $check);
+		}
+
+		/**
+		 * Register a hook listener
+		 * @param  string  $hook      Hook name
+		 * @param  string  $functName Callback function name
+		 * @param  boolean $prepend   Whether to add the listener at the beginning or the end
+		 */
+		function registerHook($hook, $functName, $prepend = false) {
+			if(!isset( $this->hooks[$hook] )) {
+				$this->hooks[$hook] = [];
+			}
+			if($prepend) {
+				array_unshift($this->hooks[$hook], $functName);
+			} else {
+				array_push($this->hooks[$hook], $functName);
+			}
+		}
+
+		/**
+		 * Execute a hook (run each listener incrementally)
+		 * @param  string $hook   	Hook name
+		 * @param  mixed  $params 	Parameters to pass to each callback function
+		 * @return mixed          	The processed data or the same data if no callbacks were found
+		 */
+		function executeHook($hook, $params = '') {
+			if(isset( $this->hooks[$hook] )) {
+				$hooks = $this->hooks[$hook];
+				$ret = [];
+				foreach ($hooks as $hook) {
+					$ret[$hook] = call_user_func($hook, $params);
+				}
+				return $ret;
+			}
+			return false;
+		}
+
+		/**
+		 * Get the specified option from the current profile
+		 * @param  string $key     Option name
+		 * @param  string $default Default value
+		 * @return mixed           The option value (array, string, integer, boolean, etc)
+		 */
+		function getOption($key, $default = '') {
+			$ret = $default;
+			if(isset( $this->profile[$key] )) {
+				$ret = $this->profile[$key];
+			}
+			return $ret;
+		}
+
+		/**
+		 * Get the specified option from the global profile
+		 * @param  string $key     Option name
+		 * @param  string $default Default value
+		 * @return mixed           The option value (array, string, integer, boolean, etc)
+		 */
+		function getGlobal($key, $default = '') {
+			$ret = $default;
+			if(isset( $this->globals[$key] )) {
+				$ret = $this->globals[$key];
+			}
+			return $ret;
+		}
+
+		/**
+		 * Get the app name
+		 * @param  boolean $echo Print the result?
+		 * @return string        App name
+		 */
+		function getAppTitle($echo = false) {
+			$ret = $this->app_title;
+			if($echo) echo $ret;
+
+			return $ret;
+		}
+
+		/**
+		 * Private clone method to prevent cloning of the instance of the *App* instance.
+		 *
+		 * @return void
+		 */
+		private function __clone() {}
+
+		/**
+		 * Private unserialize method to prevent unserializing of the *App* instance.
+		 *
+		 * @return void
+		 */
+		private function __wakeup() {}
 	}
 ?>
