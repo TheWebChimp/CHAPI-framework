@@ -33,7 +33,58 @@
 			$this->plural = str_replace('Endpoint', '', $called_class);
 			$this->singular = rtrim($this->plural, 's');
 
+			$this->defaultRoutes();
+
 			$this->init();
+		}
+
+		function defaultRoutes() {
+
+			$called_class =  get_called_class();
+			$endpoint = strtolower(str_replace('Endpoint', '', $called_class));
+			$router = $this->router;
+			$endpoint_instance = $this;
+
+			$router->all("/{$endpoint}[/{route}]", function($route = null) use ($router, $endpoint_instance) {
+
+				$parts = [];
+				if($route) $parts = explode('/', $route);
+
+				/*
+				 * GET /plural
+				 * List all elements of class
+				 */
+
+				if($router->getRequest()->type == 'get' && !count($parts)) {
+
+					call_user_func([$endpoint_instance, 'list']);
+				}
+
+				/*
+				 * GET /plural/:id
+				 * List a single element of class
+				 */
+
+				$method = !!count($parts) ? $parts[0] . 'Action' : '';
+
+				if($router->getRequest()->type == 'get' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
+
+					call_user_func([$endpoint_instance, 'single'], $parts[0]);
+				}
+
+				/*else {
+
+
+					if(method_exists($endpoint_instance, $method)) {
+
+						array_shift($parts);
+						call_user_func_array([$endpoint_instance, $method], [ $parts ]);
+					}
+				}*/
+
+				$router->getResponse()->setStatus($endpoint_instance->status);
+				$router->getResponse()->ajaxRespond($endpoint_instance->result, $endpoint_instance->data, $endpoint_instance->message, $endpoint_instance->properties);
+			});
 		}
 
 		function addRoute($route, $functName, $method = '*') {
