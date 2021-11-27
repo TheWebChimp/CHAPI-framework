@@ -4,7 +4,8 @@
 	"type": "project",
 	"require": {
 		"webchimp/dabbie": "dev-main",
-		"webchimp/norm": "dev-master"
+		"webchimp/norm": "dev-master",
+		"firebase/php-jwt": "^5.5"
 	},
 	"license": "MIT",
 	"autoload": {
