@@ -13,7 +13,11 @@
 	use CHAPI\Response;
 	use CHAPI\Router;
 	use CHAPI\DotEnv;
+
 	use Dabbie\Dabbie;
+
+	use NORM\NORM;
+	use NORM\CROOD;
 
 	include('utilities.inc.php');
 
@@ -21,10 +25,14 @@
 
 		private static $instance;
 
+		protected $globals;
 		protected $profile;
 		protected $request;
 		protected $response;
+
 		protected $base_dir;
+		protected $config_dir;
+
 		protected $db;
 
 		protected $app_title;
@@ -46,28 +54,28 @@
 
 		function init() {
 
-			if(!BASE_DIR) {
-				throw new \InvalidArgumentException(sprintf('CHAPI Error: BASE_DIR constant not defined'));
+			if(!$this->base_dir) {
+				throw new \InvalidArgumentException(sprintf('CHAPI Error: base directory not defined'));
 			}
 
-			$this->base_dir = BASE_DIR;
-
 			// Getting app profile
-			(new DotEnv(BASE_DIR . '/.env'))->load();
+			(new DotEnv($this->base_dir . '/.env'))->load();
 			define('PROFILE', getenv('PROFILE') ?? 'development');
 
-			if(!file_exists(BASE_DIR . '/config.shared.ini')) {
+			$config_dir = $this->config_dir ?? $this->base_dir . '/config';
+
+			if(!file_exists($config_dir . '/config.shared.ini')) {
 				throw new \InvalidArgumentException(sprintf('CHAPI Error: Shared Config file missing'));
 			}
 
-			if(!file_exists(BASE_DIR . '/config.' . PROFILE . '.ini')) {
+			if(!file_exists($config_dir . '/config.' . PROFILE . '.ini')) {
 				throw new \InvalidArgumentException(sprintf('CHAPI Error: ' . PROFILE . ' Config file missing'));
 			}
 
-			$settings['shared'] = parse_ini_file(BASE_DIR . '/config.shared.ini', true, INI_SCANNER_TYPED);
+			$settings['shared'] = parse_ini_file($config_dir . '/config.shared.ini', true, INI_SCANNER_TYPED);
 			$this->globals = $settings['shared'];
 
-			$settings[PROFILE] =  @parse_ini_file(BASE_DIR . '/config.' . PROFILE . '.ini', true, INI_SCANNER_TYPED);
+			$settings[PROFILE] =  @parse_ini_file($config_dir . '/config.' . PROFILE . '.ini', true, INI_SCANNER_TYPED);
 			$this->profile = $settings[PROFILE];
 
 			$this->request = new Request();
@@ -92,6 +100,75 @@
 			$this->pass_salt = $this->globals['pass_salt'];
 			$this->token_salt = $this->globals['token_salt'];
 			$this->app_title = $this->globals['app_name'];
+
+			NORM::setDBHandler($this->db);
+			CROOD::setDBHandler($this->db);
+
+			//Including all the models and endpoints registered
+
+			foreach (glob($this->baseDir() . '/app/{model,endpoint}/*.php', GLOB_BRACE) as $filename) {
+				include $filename;
+
+				//Check each endpoint
+				if(strpos(basename($filename), '.endpoint') !== false) {
+
+					//getting the endpoint route
+					$endpoint = explode('.', basename($filename));
+					$endpoint = get_item($endpoint, 0);
+
+					if($endpoint) {
+
+						$endpoint_class = ucfirst($endpoint) . 'Endpoint';
+
+						if(class_exists($endpoint_class)) {
+
+							$endpoint_instance = new $endpoint_class();
+
+							$router->all("/{$endpoint}[/{route}]", function($route = null) use ($router, $endpoint_instance) {
+
+								$parts = [];
+								if($route) $parts = explode('/', $route);
+
+								/*
+								 * GET /plural
+								 * List all elements of class
+								 */
+
+								if($router->getRequest()->type == 'get' && !count($parts)) {
+
+									call_user_func([$endpoint_instance, 'list']);
+								}
+
+								/*
+								 * GET /plural
+								 * List all elements of class
+								 */
+
+								$method = !!count($parts) ? $parts[0] . 'Action' : '';
+
+								if($router->getRequest()->type == 'get' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
+
+									call_user_func([$endpoint_instance, 'single'], $parts[0]);
+								}
+
+
+								else {
+
+
+									if(method_exists($endpoint_instance, $method)) {
+
+										array_shift($parts);
+										call_user_func_array([$endpoint_instance, $method], [ $parts ]);
+									}
+								}
+
+								$router->getResponse()->setStatus($endpoint_instance->status);
+								$router->getResponse()->ajaxRespond($endpoint_instance->result, $endpoint_instance->data, $endpoint_instance->message, $endpoint_instance->properties);
+							});
+						}
+					}
+				}
+			}
 		}
 
 		function getRequest() {
@@ -104,6 +181,10 @@
 
 		function getRouter() {
 			return $this->router;
+		}
+
+		function setBaseDir($base_dir) {
+			$this->base_dir = $base_dir;
 		}
 
 		/**
