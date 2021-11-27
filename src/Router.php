@@ -91,45 +91,45 @@
 		/**
 		 * Add a new route
 		 * @param  string  $route     Parametrized route
-		 * @param  string  $functName Handler function name
+		 * @param  string  $func      Handler function name
 		 * @param  boolean $prepend   If set, the route will be inserted at the beginning
 		 */
-		function add($route, $functName, $method = '*') {
-			$this->routes["{$method}::{$route}"] = $functName;
+		function add($route, $func, $method = '*') {
+			$this->routes["{$method}::{$route}"] = $func;
 		}
 
 		/**
 		 * Prepend a new route
 		 * @param  string  $route     Parametrized route
-		 * @param  string  $functName Handler function name
+		 * @param  string  $func Handler function name
 		 */
-		function prepend($route, $functName, $method) {
-			$this->routes = ["{$method}::{$route}" => $functName] + $this->routes;
+		function prepend($route, $func, $method = '*') {
+			$this->routes = ["{$method}::{$route}" => $func] + $this->routes;
 		}
 
-		function all($route, $functName, $prepend = false) {
-			if($prepend) $this->prepend($route, $functName, '*');
-			else $this->add($route, $functName, '*');
+		function all($route, $func, $prepend = false) {
+			if($prepend) $this->prepend($route, $func, '*');
+			else $this->add($route, $func, '*');
 		}
 
-		function get($route, $functName, $prepend = false) {
-			if($prepend) $this->prepend($route, $functName, 'get');
-			else $this->add($route, $functName, 'get');
+		function get($route, $func, $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'get');
+			else $this->add($route, $func, 'get');
 		}
 
-		function post($route, $functName, $prepend = false) {
-			if($prepend) $this->prepend($route, $functName, 'post');
-			else $this->add($route, $functName, 'post');
+		function post($route, $func, $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'post');
+			else $this->add($route, $func, 'post');
 		}
 
-		function put($route, $functName, $prepend = false) {
-			if($prepend) $this->prepend($route, $functName, 'put');
-			else $this->add($route, $functName, 'put');
+		function put($route, $func, $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'put');
+			else $this->add($route, $func, 'put');
 		}
 
-		function delete($route, $functName, $prepend = false) {
-			if($prepend) $this->prepend($route, $functName, 'delete');
-			else $this->add($route, $functName, 'delete');
+		function delete($route, $func, $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'delete');
+			else $this->add($route, $func, 'delete');
 		}
 
 		/**
