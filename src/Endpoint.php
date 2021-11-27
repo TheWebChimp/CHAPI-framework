@@ -9,6 +9,9 @@
 
 	namespace CHAPI;
 
+	use Firebase\JWT\JWT;
+	use Firebase\JWT\Key;
+
 	abstract class Endpoint {
 
 		/**
@@ -33,12 +36,12 @@
 			$this->plural = str_replace('Endpoint', '', $called_class);
 			$this->singular = rtrim($this->plural, 's');
 
-			$this->defaultRoutes();
+			$this->setupRoutes();
 
 			$this->init();
 		}
 
-		function defaultRoutes() {
+		function setupRoutes() {
 
 			$called_class =  get_called_class();
 			$endpoint = strtolower(str_replace('Endpoint', '', $called_class));
@@ -85,6 +88,50 @@
 				$router->getResponse()->setStatus($endpoint_instance->status);
 				$router->getResponse()->ajaxRespond($endpoint_instance->result, $endpoint_instance->data, $endpoint_instance->message, $endpoint_instance->properties);
 			});
+		}
+
+		function requireJWT() {
+
+			global $app;
+			$token = $this->request->getBearerToken();
+
+			$message = '';
+			$ret = false;
+
+			if($token) {
+				try {
+
+					$payload = JWT::decode($token, new Key($app->getGlobal('jwt_secret'), 'HS256'));
+
+					if($payload->exp >= time()) {
+						$user = \Users::getById($payload->uid);
+						if($user) {
+							if($user->status == 'Active') {
+								$ret = $user->id;
+							} else {
+								$message = "User is {$user->status}";
+							}
+						} else {
+							$message = 'User not found';
+						}
+					} else {
+						$message = 'Token expired';
+					}
+
+				} catch (\Exception $e) {
+
+					$message = "Exception caught: " . $e->getMessage();
+					error_log($e->getMessage());
+				}
+			} else {
+				$message = "No bearer token present";
+			}
+			if(!$ret) {
+				$this->response->setStatus(403);
+				$this->response->ajaxRespond('error', null, $message);
+				exit;
+			}
+			return $ret;
 		}
 
 		function addRoute($route, $functName, $method = '*') {
