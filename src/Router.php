@@ -24,7 +24,8 @@
 
 		/**
 		 * Display a generic error message
-		 * @param  string $message The error message
+		 * @param  string $message        The error message in HTML.
+		 * @param  string $response_code  The response code, default to 404
 		 */
 		function errorMessage($message, $response_code = 404) {
 			$markup = '<!DOCTYPE html>
@@ -66,7 +67,7 @@
 
 		/**
 		 * Get router request object
-		 * @return NORM\Request The request object
+		 * @return CHAPI\Request The request object
 		 */
 		function getRequest() {
 			return $this->request;
@@ -74,7 +75,7 @@
 
 		/**
 		 * Get router response object
-		 * @return NORM\Response The response object
+		 * @return CHAPI\Response The response object
 		 */
 		function getResponse() {
 			return $this->response;
@@ -82,7 +83,7 @@
 
 		/**
 		 * Set the default route
-		 * @param string $route Full route, defaults to '/default'
+		 * @param string $route Full route, defaults to '/'
 		 */
 		function setDefaultRoute($route) {
 			$this->default_route = $route;
@@ -92,21 +93,27 @@
 		 * Add a new route
 		 * @param  string  $route     Parametrized route
 		 * @param  string  $func      Handler function name
-		 * @param  boolean $prepend   If set, the route will be inserted at the beginning
+		 * @param  boolean $method    Method in which to register the route
 		 */
 		function add($route, $func, $method = '*') {
 			$this->routes["{$method}::{$route}"] = $func;
 		}
 
 		/**
-		 * Prepend a new route
+		 * Prepends a new route (puts it in first place of routes array).
 		 * @param  string  $route     Parametrized route
-		 * @param  string  $func Handler function name
+		 * @param  string  $func      Handler function name
 		 */
 		function prepend($route, $func, $method = '*') {
 			$this->routes = ["{$method}::{$route}" => $func] + $this->routes;
 		}
 
+		/**
+		 * Adds or prepends a route for all methods
+		 * @param  string   $route    Parametrized route
+		 * @param  string   $func     Handler function name
+		 * @param  boolean  $prepend  Determines if route should be prepended instead of added
+		 */
 		function all($route, $func, $prepend = false) {
 			if($prepend) $this->prepend($route, $func, '*');
 			else $this->add($route, $func, '*');
@@ -146,12 +153,13 @@
 		}
 
 		/**
-		 * Check whether a given route exists or not
-		 * @param  string $route Parametrized route
+		 * Checks whether a given route exists or not
+		 * @param  string $route  Parametrized route
+		 * @param  string $method Method of the route
 		 * @return boolean       True if the route exists, false otherwise
 		 */
-		function isRoute($route) {
-			return isset( $this->routes[$route] );
+		function isRoute($route, $method) {
+			return isset( $this->routes["{$method}::{$route}"] );
 		}
 
 		/**
@@ -163,7 +171,7 @@
 		}
 
 		/**
-		 * Retrieve the current request URI
+		 * Retrieves the current request URI
 		 * @return string The current request URI
 		 */
 		function getCurrentUrl() {
@@ -189,9 +197,11 @@
 			return $request_uri;
 		}
 
-
+		/**
+		 * Shortcut / Helper function that registers a route for 404
+		 * @param  function $fn  Function to respond to 404 route
+		 */
 		function set404($fn) {
-
 			$this->add('404', function() use ($fn) {
 
 				$this->response->setStatus(404);
@@ -200,7 +210,7 @@
 		}
 
 		/**
-		 * Remove all the registered routes
+		 * Removes all the registered routes
 		 * @return nothing
 		 */
 		function clearRoutes() {
@@ -208,9 +218,9 @@
 		}
 
 		/**
-		 * Try to match the given route with one of the registered handlers and process it
-		 * @param  string $route  		The route to match
-		 * @return boolean        		TRUE if the route matched with a handler, FALSE otherwise
+		 * Tries to match the given route with one of the registered handlers and process it
+		 * @param  string $route  The route to match
+		 * @return boolean        TRUE if the route matched with a handler, FALSE otherwise
 		 */
 		function match($spec_route) {
 			$ret = false;
@@ -247,7 +257,7 @@
 		}
 
 		/**
-		 * Process current request
+		 * Processes current request
 		 * @return boolean TRUE if routing has succeeded, FALSE otherwise
 		 */
 		function routeRequest() {

@@ -46,7 +46,7 @@
 		}
 
 		/**
-		 * Read the input buffer
+		 * Reads the input buffer
 		 * @return string Input stream contents
 		 */
 		function readInput() {
@@ -228,7 +228,7 @@
 
 		/**
 		 * Sanitizes authorization header for use
-		 * @return string       Clean Bearer
+		 * @return string       Clean bearer or null if not found
 		 */
 		function getBearerToken() {
 			$headers = $this->getAuthorizationHeader();

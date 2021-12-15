@@ -99,6 +99,7 @@
 
 		/**
 		 * Get the array of headers for the current response
+		 * @return array  All current headers
 		 */
 		function getHeaders() {
 			return $this->headers;
@@ -115,7 +116,7 @@
 
 		/**
 		 * Flush headers and response body
-		 * @return boolean This will always return True
+		 * @return boolean This will always return true
 		 */
 		function respond() {
 			http_response_code($this->status);
@@ -134,7 +135,7 @@
 		 * @param  array  $data       Array with data to respond
 		 * @param  string $message    Readable message for the response
 		 * @param  array  $properties Extra information to pass that should be outside data
-		 * @return boolean  This will always return True
+		 * @return boolean  This will always return true
 		 */
 		function ajaxRespond($result, $data = null, $message = null, $properties = []) {
 			$ret = [];
@@ -153,16 +154,29 @@
 			return true;
 		}
 
-		function error($message) {
+		/**
+		 * Responds an error with an specific message
+		 * @param  string $message    Readable message for the response
+		 * @param  string $status     HTTP code to respond, default to 404
+		 * @return boolean  This will always return true
+		 */
+
+		function error($message, $status = 404) {
 			$result = 'error';
 			$data = null;
-			$this->setStatus(404);
-			$this->ajaxRespond($result, $data, $message);
+			$this->setStatus($status);
+			return $this->ajaxRespond($result, $data, $message);
 			exit;
 		}
 
+		/**
+		 * Shortcut / Helper function to respond a "bad HTTP method" error
+		 * @param  string $method    Bad method used
+		 * @return boolean  This will always return true
+		 */
+
 		function badHTTPMethod($method) {
-			$this->error("Incorrect http method: {$method}");
+			return $this->error("Incorrect http method: {$method}");
 		}
 	}
 ?>
