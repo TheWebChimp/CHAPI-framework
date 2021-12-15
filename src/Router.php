@@ -220,7 +220,7 @@
 
 			$matched_route = false;
 
-			foreach ($this->routes as $route => $handler) {
+			foreach($this->routes as $route => $handler) {
 
 				//removing and checking the method
 				list($method, $route) = explode('::', $route);
@@ -279,8 +279,16 @@
 
 			if($route) {
 
-				call_user_func_array($route['handler'], $route['params']);
-				$ret = true;
+				try {
+
+					call_user_func_array($route['handler'], $route['params']);
+					$ret = true;
+
+				} catch(\Exception $e) {
+
+					$this->response->setStatus('500');
+					$this->response->ajaxRespond('error', [], "Router Error: Error handling route {$route['route']} on file " . $e->getFile() . " on line" . $e->getLine() . ":" . $e->getMessage());
+				}
 
 			} else {
 
