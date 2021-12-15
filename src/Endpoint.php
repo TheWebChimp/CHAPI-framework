@@ -24,7 +24,7 @@
 			$this->message = '';
 			$this->data = [];
 			$this->properties = [];
-			$this->status = 404;
+			$this->status = 200;
 			$this->result = 'error';
 
 			$this->router = $app->router;
@@ -52,38 +52,67 @@
 
 				$parts = [];
 				if($route) $parts = explode('/', $route);
+				$method = !!count($parts) ? $parts[0] . 'Action' : '';
+
+
+				if($router->getRequest()->type == 'post' || $router->getRequest()->type == 'put') {
+					$raw_input = $router->getRequest()->readInput();
+
+					//Check for json
+					$php_input = @json_decode($raw_input, true);
+
+					if(!$php_input) {
+						$php_input = $router->getRequest()->put();
+					}
+
+					if($php_input) { $_POST = $php_input; }
+				}
 
 				/*
 				 * GET /plural
-				 * List all elements of class
+				 * Lists all elements of class
 				 */
 
 				if($router->getRequest()->type == 'get' && !count($parts)) {
 
 					call_user_func([$endpoint_instance, 'list']);
-				}
+
+				/*
+				 * POST /plural/
+				 * Creates a single element of class
+				 */
+
+				} else if($router->getRequest()->type == 'post' && !count($parts)) {
+
+					call_user_func([$endpoint_instance, 'create']);
+
+				/*
+				 * PUT /plural/:id
+				 * Updates a single element of class
+				 */
+
+				} else if($router->getRequest()->type == 'put' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
+
+					call_user_func([$endpoint_instance, 'update'], $parts[0]);
 
 				/*
 				 * GET /plural/:id
-				 * List a single element of class
+				 * Lists a single element of class
 				 */
 
-				$method = !!count($parts) ? $parts[0] . 'Action' : '';
-
-				if($router->getRequest()->type == 'get' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
+				} else if($router->getRequest()->type == 'get' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
 
 					call_user_func([$endpoint_instance, 'single'], $parts[0]);
+
+				} else if(method_exists($endpoint_instance, $method)) {
+
+					array_shift($parts);
+					call_user_func_array([$endpoint_instance, $method], [ $parts ]);
+
+				} else {
+
+					$endpoint_instance->status = 404;
 				}
-
-				/*else {
-
-
-					if(method_exists($endpoint_instance, $method)) {
-
-						array_shift($parts);
-						call_user_func_array([$endpoint_instance, $method], [ $parts ]);
-					}
-				}*/
 
 				$router->getResponse()->setStatus($endpoint_instance->status);
 				$router->getResponse()->ajaxRespond($endpoint_instance->result, $endpoint_instance->data, $endpoint_instance->message, $endpoint_instance->properties);
@@ -143,10 +172,47 @@
 			exit;
 		}
 
-		function getItemById($id) {
+		function getItemById($id, $args = []) {
 
-			$item = $this->plural::getById($id);
+			$item = $this->plural::getById($id, $args);
 			return $item;
+		}
+
+		function allItemInId($id, $args) {
+
+			$items = $this->plural::allInId($id, $args);
+			return $items;
+		}
+
+		function upsert($item) {
+			$metas = $this->request->post('metas');
+
+			try {
+
+				$fields_whitelist = $this->plural::getTableFields();
+
+				foreach($_POST as $key => $value) {
+
+					if(in_array($key, $fields_whitelist)) {
+						$item->{$key} = $value;
+					}
+				}
+
+				$save = $item->save();
+
+				if($save) {
+
+					// Metas
+					if($metas) {
+						foreach($metas as $name => $value) {
+							$this->updateMeta($item, $name, $metas);
+						}
+					}
+
+					return $item;
+				}
+
+			} catch(\Exception $e) { throw new \Exception('CHAPI Endpoint: Error at saving through upsert: ' . $e->getMessage()); }
 		}
 
 		/**
@@ -158,6 +224,8 @@
 		 * Lists all elements from a class
 		 */
 		function list() {
+
+			$this->requireJWT();
 
 			//Items to show, we can define the number of items via the show query param
 			$show = $this->request->get('show', 100);
@@ -214,12 +282,85 @@
 			}
 		}
 
+		function create() {
+
+			$this->requireJWT();
+
+			try {
+
+				$item = $this->upsert(new $this->singular);
+
+				if($item) {
+
+					$this->data = $item;
+					$this->result = 'success';
+					$this->message = "{$this->singular} has been created successfully";
+
+				} else {
+
+					$this->response->setStatus(409);
+					$this->message = "Error creating {$this->singular}";
+				}
+
+			} catch (\Exception $e) {
+
+				$this->result = 'error';
+				$this->response->setStatus(409);
+				$this->message = $e->getMessage();
+			}
+		}
+
+		function update($id) {
+
+			$this->requireJWT();
+			$item = $this->getItemById($id);
+
+			if($item) {
+
+				try {
+
+					$item = $this->upsert($item);
+
+					if($item) {
+
+						$this->data = $item;
+						$this->result = 'success';
+						$this->message = "{$this->singular} has been updated successfully";
+
+					} else {
+
+						$this->response->setStatus(409);
+						$this->message = "Error updating {$this->singular}";
+					}
+
+				} catch (\Exception $e) {
+
+					$this->result = 'error';
+					$this->response->setStatus(409);
+					$this->message = $e->getMessage();
+				}
+			} else {
+
+				$this->response->setStatus(409);
+				$this->message = "Error updating {$this->singular}: item not found";
+			}
+		}
+
 		function single($id) {
+
+			$this->requireJWT();
+
+			if(preg_match('/(.*),(.*)/', $id)) {
+
+				$this->multiple($id);
+				return;
+			}
 
 			$args = ['args' => []];
 
 			//Defines if we want to fetch metas or not
 			$fetch_metas = $this->request->get('fetch_metas');
+
 			if($fetch_metas) {
 
 				if($fetch_metas != 1) $fetch_metas = explode(',', $fetch_metas);
@@ -231,6 +372,27 @@
 			if($item) {
 
 				$this->data = $item;
+				$this->result = 'success';
+			}
+		}
+
+		function multiple($id) {
+
+			$args = ['args' => []];
+
+			//Defines if we want to fetch metas or not
+			$fetch_metas = $this->request->get('fetch_metas');
+			if($fetch_metas) {
+
+				if($fetch_metas != 1) $fetch_metas = explode(',', $fetch_metas);
+				$args['args']['fetch_metas'] = $fetch_metas;
+			}
+
+			$items = $this->allItemInId(explode(',', $id), $args);
+
+			if($items) {
+
+				$this->data = $items;
 				$this->result = 'success';
 			}
 		}
