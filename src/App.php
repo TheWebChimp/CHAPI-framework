@@ -92,6 +92,9 @@
 				$router->getResponse()->ajaxRespond('error', [], 'Error: Route not found');
 			});
 
+			$router->all('/', function() use ($router) {
+				$router->getResponse()->ajaxRespond('success', [], 'App running, okey dokey 🐵🐵🐵');
+			});
 
 			//$this->router->all('.*', 'CHAPI\App::routeRequest');
 
