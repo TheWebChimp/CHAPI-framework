@@ -96,6 +96,15 @@
 					call_user_func([$endpoint_instance, 'update'], $parts[0]);
 
 				/*
+				 * DELETE /plural/:id
+				 * Deletes a single or multiple elements of class
+				 */
+
+				} else if($router->getRequest()->type == 'delete' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
+
+					call_user_func([$endpoint_instance, 'delete'], $parts[0]);
+
+				/*
 				 * GET /plural/:id
 				 * Lists a single element of class
 				 */
@@ -138,25 +147,29 @@
 							if($user->status == 'Active') {
 								$ret = $user->id;
 							} else {
+								$this->response->setStatus(401);
 								$message = "User is {$user->status}";
 							}
 						} else {
+							$this->response->setStatus(404);
 							$message = 'User not found';
 						}
 					} else {
+						$this->response->setStatus(401);
 						$message = 'Token expired';
 					}
 
 				} catch (\Exception $e) {
 
+					$this->response->setStatus(401);
 					$message = "Exception caught: " . $e->getMessage();
 					error_log($e->getMessage());
 				}
 			} else {
+				$this->response->setStatus(401);
 				$message = "No bearer token present";
 			}
 			if(!$ret) {
-				$this->response->setStatus(403);
 				$this->response->ajaxRespond('error', null, $message);
 				exit;
 			}
@@ -298,14 +311,14 @@
 
 				} else {
 
-					$this->response->setStatus(409);
+					$this->status = 409;
 					$this->message = "Error creating {$this->singular}";
 				}
 
 			} catch (\Exception $e) {
 
 				$this->result = 'error';
-				$this->response->setStatus(409);
+				$this->status = 409;
 				$this->message = $e->getMessage();
 			}
 		}
@@ -329,32 +342,124 @@
 
 					} else {
 
-						$this->response->setStatus(409);
+						$this->status = 409;
 						$this->message = "Error updating {$this->singular}";
 					}
 
 				} catch (\Exception $e) {
 
 					$this->result = 'error';
-					$this->response->setStatus(409);
+					$this->status = 409;
 					$this->message = $e->getMessage();
 				}
 			} else {
 
-				$this->response->setStatus(409);
+				$this->status = 409;
 				$this->message = "Error updating {$this->singular}: item not found";
+			}
+		}
+
+		function delete($id) {
+
+			$this->requireJWT();
+			$multiple = !!preg_match('/(.*),(.*)/', $id);
+
+			$ids = $multiple ? explode(',', $id) : [];
+
+			$ids_deleted = [];
+			$errors = [];
+
+			if(!$multiple) {
+
+				$item = $this->getItemById($id);
+
+				if($item) {
+
+					try {
+
+						$deleted = $item->delete();
+
+						if($deleted) {
+
+							$this->result = 'success';
+							$this->message = "{$this->singular} has been deleted successfully";
+
+						} else {
+
+							$this->result = 'error';
+							$this->status = 409;
+							$this->message = 'Error deleting {$this->singular}';
+						}
+
+					} catch(\Exception $e) {
+
+						$this->result = 'error';
+						$this->status = 409;
+						$this->message = $e->getMessage();
+					}
+
+				} else {
+
+					$this->status = 404;
+					$this->message = "Error deleting {$this->singular}: item not found.";
+				}
+
+			} else {
+
+				$success = [];
+				$errors = [];
+
+				foreach($ids as $id) {
+
+					$item = $this->getItemById($id);
+
+					if($item) {
+
+						try {
+
+							$deleted = $item->delete();
+
+							if($deleted) {
+
+								$success[] = $id;
+
+							} else {
+
+								$errors[] = $id;
+							}
+
+						} catch(\Exception $e) {
+
+							$errors[] = $id;
+						}
+
+					} else {
+
+						$errors[] = $id;
+					}
+				}
+
+				if(count($success)) {
+
+					$this->message = (count($success) == 1 ? $this->singular : $this->plural) . ' with id' . (count($success) == 1 ? '' : 's') . ' ' . implode(', ', $success) . " successfully deleted";
+
+					if(count($errors)) {
+
+						$this->message .= '. ' . (count($success) == 1 ? $this->singular : $this->plural) . ' with id' . (count($errors) == 1 ? '' : 's') . ' ' . implode(', ', $errors) . " not deleted because error.";
+					}
+
+				} else {
+
+					$this->message = (count($success) == 1 ? $this->singular : $this->plural) . ' with id' . (count($errors) == 1 ? '' : 's') . ' ' . implode(', ', $errors) . " not deleted because error.";
+					$this->status = 409;
+				}
 			}
 		}
 
 		function single($id) {
 
 			$this->requireJWT();
-
-			if(preg_match('/(.*),(.*)/', $id)) {
-
-				$this->multiple($id);
-				return;
-			}
+			$multiple = !!preg_match('/(.*),(.*)/', $id);
 
 			$args = ['args' => []];
 
@@ -367,33 +472,17 @@
 				$args['args']['fetch_metas'] = $fetch_metas;
 			}
 
-			$item = $this->getItemById($id, $args);
+			$item = $multiple ? $this->allItemInId(explode(',', $id), $args) : $this->getItemById($id, $args);
 
 			if($item) {
 
 				$this->data = $item;
 				$this->result = 'success';
-			}
-		}
 
-		function multiple($id) {
+			} else {
 
-			$args = ['args' => []];
-
-			//Defines if we want to fetch metas or not
-			$fetch_metas = $this->request->get('fetch_metas');
-			if($fetch_metas) {
-
-				if($fetch_metas != 1) $fetch_metas = explode(',', $fetch_metas);
-				$args['args']['fetch_metas'] = $fetch_metas;
-			}
-
-			$items = $this->allItemInId(explode(',', $id), $args);
-
-			if($items) {
-
-				$this->data = $items;
-				$this->result = 'success';
+				$this->status = 404;
+				$this->message = "Error getting {$this->singular}: item not found.";
 			}
 		}
 	}
