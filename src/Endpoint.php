@@ -278,7 +278,7 @@
 
 			$this->data = $items;
 
-			$count = $this->plural::count($args['conditions']);
+			$count = $this->plural::count($args['conditions'] ?? []);
 			$pages = ceil($count / $show);
 
 			$this->properties['current_page'] = (int) $page;
