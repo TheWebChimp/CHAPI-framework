@@ -38,6 +38,14 @@
 
 			$this->setupRoutes();
 
+			//JWT's
+
+			$this->listJWT = true;
+			$this->createJWT = true;
+			$this->updateJWT = true;
+			$this->deleteJWT = true;
+			$this->singleJWT = true;
+
 			$this->init();
 		}
 
@@ -53,7 +61,6 @@
 				$parts = [];
 				if($route) $parts = explode('/', $route);
 				$method = !!count($parts) ? $parts[0] . 'Action' : '';
-
 
 				if($router->getRequest()->type == 'post' || $router->getRequest()->type == 'put') {
 					$raw_input = $router->getRequest()->readInput();
@@ -238,7 +245,7 @@
 		 */
 		function list() {
 
-			$this->requireJWT();
+			if($this->listJWT) $this->requireJWT();
 
 			//Items to show, we can define the number of items via the show query param
 			$show = $this->request->get('show', 100);
