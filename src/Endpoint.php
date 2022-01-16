@@ -333,7 +333,9 @@
 		function update($id) {
 
 			$this->requireJWT();
-			$item = $this->getItemById($id);
+
+			$args = $this->request->put('args', []);
+			$item = $this->getItemById($id, $args);
 
 			if($item) {
 
