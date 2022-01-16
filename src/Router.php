@@ -291,6 +291,8 @@
 
 				try {
 
+					$this->matchedRoute = $route;
+
 					call_user_func_array($route['handler'], $route['params']);
 					$ret = true;
 
