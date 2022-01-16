@@ -36,6 +36,8 @@
 			$this->plural = str_replace('Endpoint', '', $called_class);
 			$this->singular = rtrim($this->plural, 's');
 
+			// Setup Routes
+
 			$this->setupRoutes();
 
 			//JWT's
@@ -56,83 +58,52 @@
 			$router = $this->router;
 			$endpoint_instance = $this;
 
-			$router->all("/{$endpoint}[/{route}]", function($route = null) use ($router, $endpoint_instance) {
+			if($router->getRequest()->type == 'post' || $router->getRequest()->type == 'put') {
+				$raw_input = $router->getRequest()->readInput();
 
-				$parts = [];
-				if($route) $parts = explode('/', $route);
-				$method = !!count($parts) ? $parts[0] . 'Action' : '';
+				//Check for json
+				$php_input = @json_decode($raw_input, true);
 
-				if($router->getRequest()->type == 'post' || $router->getRequest()->type == 'put') {
-					$raw_input = $router->getRequest()->readInput();
-
-					//Check for json
-					$php_input = @json_decode($raw_input, true);
-
-					if(!$php_input) {
-						$php_input = $router->getRequest()->put();
-					}
-
-					if($php_input) { $_POST = $php_input; }
+				if(!$php_input) {
+					$php_input = $router->getRequest()->put();
 				}
 
-				/*
-				 * GET /plural
-				 * Lists all elements of class
-				 */
+				if($php_input) { $_POST = $php_input; }
+			}
 
-				if($router->getRequest()->type == 'get' && !count($parts)) {
+			//Metas
+			$router->get("/{$endpoint}/{id}/meta/{value}", [$this, 'meta']);
+			$router->put("/{$endpoint}/{id}/meta/{value}", [$this, 'meta']);
 
-					call_user_func([$endpoint_instance, 'list']);
+			/*
+			 * GET /plural
+			 * Lists all elements of class
+			 */
+			$router->get("/{$endpoint}", [$this, 'list']);
 
-				/*
-				 * POST /plural/
-				 * Creates a single element of class
-				 */
+			/*
+			 * POST /plural/
+			 * Creates a single element of class
+			 */
+			$router->post("/{$endpoint}", [$this, 'create']);
 
-				} else if($router->getRequest()->type == 'post' && !count($parts)) {
+			/*
+			 * PUT /plural/:id
+			 * Updates a single element of class
+			 */
+			$router->put("/{$endpoint}/{id}", [$this, 'update']);
 
-					call_user_func([$endpoint_instance, 'create']);
+			/*
+			 * DELETE /plural/:id
+			 * Deletes a single or multiple elements of class
+			 */
+			$router->delete("/{$endpoint}/{id}", [$this, 'delete']);
 
-				/*
-				 * PUT /plural/:id
-				 * Updates a single element of class
-				 */
-
-				} else if($router->getRequest()->type == 'put' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
-
-					call_user_func([$endpoint_instance, 'update'], $parts[0]);
-
-				/*
-				 * DELETE /plural/:id
-				 * Deletes a single or multiple elements of class
-				 */
-
-				} else if($router->getRequest()->type == 'delete' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
-
-					call_user_func([$endpoint_instance, 'delete'], $parts[0]);
-
-				/*
-				 * GET /plural/:id
-				 * Lists a single element of class
-				 */
-
-				} else if($router->getRequest()->type == 'get' && count($parts) == 1 && !method_exists($endpoint_instance, $method)) {
-
-					call_user_func([$endpoint_instance, 'single'], $parts[0]);
-
-				} else if(method_exists($endpoint_instance, $method)) {
-
-					array_shift($parts);
-					call_user_func_array([$endpoint_instance, $method], [ $parts ]);
-
-				} else {
-
-					$endpoint_instance->status = 404;
-				}
-
-				$router->getResponse()->setStatus($endpoint_instance->status);
-				$router->getResponse()->ajaxRespond($endpoint_instance->result, $endpoint_instance->data, $endpoint_instance->message, $endpoint_instance->properties);
-			});
+			/*
+			 * GET /plural/:id
+			 * Lists a single element of class
+			 */
+			$router->get("/{$endpoint}/{id}", [$this, 'single']);
 		}
 
 		function requireJWT() {
@@ -210,8 +181,6 @@
 			try {
 
 				$fields_whitelist = $this->plural::getTableFields();
-
-				$_POST = $this->request->put() ?? $this->request->post();
 
 				foreach($_POST as $key => $value) {
 
@@ -302,6 +271,8 @@
 
 				$this->result = 'success';
 			}
+
+			$this->respond();
 		}
 
 		function create() {
@@ -330,6 +301,8 @@
 				$this->status = 409;
 				$this->message = $e->getMessage();
 			}
+
+			$this->respond();
 		}
 
 		function update($id) {
@@ -368,6 +341,8 @@
 				$this->status = 409;
 				$this->message = "Error updating {$this->singular}: item not found";
 			}
+
+			$this->respond();
 		}
 
 		function delete($id) {
@@ -465,6 +440,8 @@
 					$this->status = 409;
 				}
 			}
+
+			$this->respond();
 		}
 
 		function single($id) {
@@ -495,6 +472,39 @@
 				$this->status = 404;
 				$this->message = "Error getting {$this->singular}: item not found.";
 			}
+
+			$this->respond();
+		}
+
+		function meta($id, $meta_name) {
+
+			$this->requireJWT();
+			$item = $this->getItemById($id);
+
+			if($item) {
+
+				if($this->request->type == 'get') {
+
+					$this->data = $item->getMeta($meta_name);
+					$this->result = 'success';
+				}
+
+				if($this->request->type == 'put') {
+
+					$value = $this->request->put('value');
+
+					$item->updateMeta($meta_name, $value);
+					$this->data = $item->getMeta($meta_name);
+					$this->result = 'success';
+				}
+
+			} else {
+
+				$this->status = 409;
+				$this->message = "Error updating {$this->singular}: item not found";
+			}
+
+			$this->respond();
 		}
 	}
 ?>
