@@ -211,6 +211,8 @@
 
 				$fields_whitelist = $this->plural::getTableFields();
 
+				$_POST = $this->request->put() ?? $this->request->post();
+
 				foreach($_POST as $key => $value) {
 
 					if(in_array($key, $fields_whitelist)) {
