@@ -299,7 +299,7 @@
 				} catch(\Exception $e) {
 
 					$this->response->setStatus('500');
-					$this->response->ajaxRespond('error', [], "Router Error: Error handling route {$route['route']} on file " . $e->getFile() . " on line" . $e->getLine() . ":" . $e->getMessage());
+					$this->response->ajaxRespond('error', [], "Router Error: Error handling route {$route['route']} on file " . $e->getFile() . " on line " . $e->getLine() . ": " . $e->getMessage());
 				}
 
 			} else {
