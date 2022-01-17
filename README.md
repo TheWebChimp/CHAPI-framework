@@ -25,7 +25,7 @@ The request object lets you play with the request information made to the API. I
 - Wrapper functions to manipulate Cookies and Server information
 - Tools to get Authorization Headers and bearers
 
-[Request Documentation](request.md)
+[Request Documentation](docs/request.md)
 
 ### Response Object
 
@@ -37,7 +37,7 @@ The Response Object is a tool designed to facilitate the way the endpoint respon
 - Redirect to special locations
 - Respond json in an easy way
 
-[Response Documentation](response.md)
+[Response Documentation](docs/response.md)
 
 ### Router
 
@@ -50,16 +50,16 @@ Main advantages of CHAPI's Router are:
 - Optional params
 - Regex supported
 
-[Router Documentation](router.md)
+[Router Documentation](docs/router.md)
 
 ### Endpoint Class
 
 The endpoint class uses all the power from Request, Response and Router. It creates a base to create endpoints without too much code. Out of the box, it comes with a specific set of automagic routes that define the basis for simple endpoints needed for CrUD operations and let you extend this however you want.
 
-[Endpoint Documentation](endpoint.md)
+[Endpoint Documentation](docs/endpoint.md)
 
 ### App Wrapper
 
 Everything in CHAPI is wrapped, at the end, in an `APP` object that lets you access everything it has through one point.
 
-[APP Documentation](router.md)
+[APP Documentation](docs/router.md)
