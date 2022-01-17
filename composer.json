@@ -4,7 +4,7 @@
 	"type": "project",
 	"require": {
 		"webchimp/dabbie": "dev-main",
-		"webchimp/norm": "dev-master",
+		"webchimp/norm": ">=2.0",
 		"firebase/php-jwt": "^5.5"
 	},
 	"license": "MIT",

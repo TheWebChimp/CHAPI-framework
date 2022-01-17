@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c6e71ea01e9e3a7cf43e17ae2380e27d",
+    "content-hash": "b25c8be304f0f0a54a62882c4a3de17b",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -106,22 +106,23 @@
         },
         {
             "name": "webchimp/norm",
-            "version": "dev-master",
+            "version": "2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/TheWebChimp/NORM.git",
-                "reference": "b0bbb1c89a470299ebe8182d43db44c34c97e54b"
+                "reference": "90ac0f7e3dc9d4b350d4192466fdd7808264394b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TheWebChimp/NORM/zipball/b0bbb1c89a470299ebe8182d43db44c34c97e54b",
-                "reference": "b0bbb1c89a470299ebe8182d43db44c34c97e54b",
+                "url": "https://api.github.com/repos/TheWebChimp/NORM/zipball/90ac0f7e3dc9d4b350d4192466fdd7808264394b",
+                "reference": "90ac0f7e3dc9d4b350d4192466fdd7808264394b",
                 "shasum": ""
             },
             "require": {
-                "webchimp/dabbie": ">=1.0"
+                "ext-pdo": "*",
+                "ext-pdo_mysql": "*",
+                "webchimp/dabbie": "dev-main"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -141,17 +142,16 @@
             "description": "Your favorite ORM and CrUD tools",
             "support": {
                 "issues": "https://github.com/TheWebChimp/NORM/issues",
-                "source": "https://github.com/TheWebChimp/NORM/tree/master"
+                "source": "https://github.com/TheWebChimp/NORM/tree/v2.0.0"
             },
-            "time": "2021-10-20T15:23:21+00:00"
+            "time": "2022-01-17T22:49:14+00:00"
         }
     ],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "webchimp/dabbie": 20,
-        "webchimp/norm": 20
+        "webchimp/dabbie": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
