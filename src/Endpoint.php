@@ -54,7 +54,7 @@
 		function setupRoutes() {
 
 			$called_class =  get_called_class();
-			$endpoint = strtolower(str_replace('Endpoint', '', $called_class));
+			$endpoint = strtolower(str_replace('-endpoint', '', camel_to_dash($called_class)));
 			$router = $this->router;
 			$endpoint_instance = $this;
 

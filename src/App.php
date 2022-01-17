@@ -121,7 +121,7 @@
 
 					if($endpoint) {
 
-						$endpoint_class = ucfirst($endpoint) . 'Endpoint';
+						$endpoint_class = ucfirst(dash_to_camel($endpoint)) . 'Endpoint';
 
 						if(class_exists($endpoint_class)) {
 
