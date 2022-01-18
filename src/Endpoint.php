@@ -33,20 +33,28 @@
 
 			$called_class =  get_called_class();
 
-			$this->plural = str_replace('Endpoint', '', $called_class);
-			$this->singular = rtrim($this->plural, 's');
+			if(!(isset($this->isModel) && $this->isModel === false)) {
 
-			// Setup Routes
+				$this->plural = str_replace('Endpoint', '', $called_class);
+				$this->singular = rtrim($this->plural, 's');
+				$this->endpoint = $this->plural;
 
-			$this->setupRoutes();
+				// Setup Routes
 
-			//JWT's
+				$this->setupRoutes();
 
-			$this->listJWT = true;
-			$this->createJWT = true;
-			$this->updateJWT = true;
-			$this->deleteJWT = true;
-			$this->singleJWT = true;
+				//JWT's
+
+				$this->listJWT = true;
+				$this->createJWT = true;
+				$this->updateJWT = true;
+				$this->deleteJWT = true;
+				$this->singleJWT = true;
+
+			} else {
+
+				$this->endpoint = strtolower($called_class);
+			}
 
 			$this->init();
 		}
