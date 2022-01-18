@@ -56,6 +56,13 @@
 		}
 	}
 
+	if(!function_exists('isJson')) {
+		function isJson($string) {
+			json_decode($string);
+			return (json_last_error() == JSON_ERROR_NONE);
+		}
+	}
+
 	/**
 	 * Convert camelCase to snake_case
 	 * @param  string $val Original string
