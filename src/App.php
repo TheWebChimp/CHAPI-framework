@@ -132,6 +132,10 @@
 			}
 		}
 
+		function db() {
+			return $this->db;
+		}
+
 		function getRequest() {
 			return $this->request;
 		}
