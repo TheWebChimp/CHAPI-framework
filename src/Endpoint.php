@@ -204,7 +204,7 @@
 					// Metas
 					if($metas) {
 						foreach($metas as $name => $value) {
-							$this->updateMeta($item, $name, $metas);
+							$item->updateMeta($name, $value);
 						}
 					}
 
