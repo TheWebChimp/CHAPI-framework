@@ -59,6 +59,20 @@
 			$this->init();
 		}
 
+		static function addCondition($key, $condition = false) {
+			global $app;
+			$request = $app->getRequest();
+			$query =
+
+			$val = $request->get($key);
+			if($val) {
+
+				$condition = $condition ?: "{$key} = '%s'";
+				return $val != '' && $val != null ? sprintf($condition, $val) : '';
+			}
+
+		}
+
 		function setupRoutes() {
 
 			$called_class =  get_called_class();
@@ -214,6 +228,11 @@
 			} catch(\Exception $e) { throw new \Exception('CHAPI Endpoint: Error at saving through upsert: ' . $e->getMessage()); }
 		}
 
+		function filterListConditions($conditions) {
+
+			return $conditions;
+		}
+
 		/**
 		 * Initialization callback, must be overriden in your extended classes
 		 */
@@ -260,8 +279,25 @@
 				}
 			}
 
-			$items = $this->plural::all($args);
+			//Fetch
+			foreach($_GET as $key => $value) {
 
+				if(preg_match('/fetch_(?<entity>.*)/', $key, $matches)) {
+					$args['args'][$key] = $value;
+				}
+			}
+
+			//$args['debug'] = 1;
+
+			// Conditions Filter
+
+			$args['conditions'] = $this->filterListConditions(get_item($args, 'conditions', []));
+
+			if(is_array($args['conditions'])) {
+				$args['conditions'] = array_filter($args['conditions']);
+			}
+
+			$items = $this->plural::all($args);
 			$this->data = $items;
 
 			$count = $this->plural::count($args['conditions'] ?? []);
