@@ -177,7 +177,7 @@
 		}
 
 		function addRoute($route, $functName, $method = '*') {
-			$this->router->prepend('/' . strtolower($this->plural) . '/' . $route, $functName, $method);
+			$this->router->prepend('/' . camel_to_dash($this->plural) . '/' . $route, $functName, $method);
 		}
 
 		function respond() {
