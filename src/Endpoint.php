@@ -59,6 +59,20 @@
 			$this->init();
 		}
 
+		function getIds($obj_array) {
+
+			$ids = [];
+			foreach($obj_array as $obj) {
+				if(isset($obj->id)) {
+					$ids[] = $obj->id;
+				} else if(isset($obj['id'])) {
+					$ids[] = $obj['id'];
+				}
+			}
+
+			return $ids;
+		}
+
 		static function addCondition($key, $condition = false) {
 			global $app;
 			$request = $app->getRequest();
