@@ -76,7 +76,6 @@
 		static function addCondition($key, $condition = false) {
 			global $app;
 			$request = $app->getRequest();
-			$query =
 
 			$val = $request->get($key);
 			if($val) {
@@ -293,6 +292,11 @@
 				}
 			}
 
+			//Query Fields
+			$query_fields = $this->request->get('query_fields');
+			if($query_fields && is_string($query_fields)) $query_fields = explode(',', $query_fields);
+			if($query_fields) $args['query_fields'] = $query_fields;
+
 			//Fetch
 			foreach($_GET as $key => $value) {
 
@@ -304,7 +308,6 @@
 			//$args['debug'] = 1;
 
 			// Conditions Filter
-
 			$args['conditions'] = $this->filterListConditions(get_item($args, 'conditions', []));
 
 			if(is_array($args['conditions'])) {
