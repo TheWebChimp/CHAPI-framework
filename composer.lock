@@ -419,12 +419,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/TheWebChimp/NORM.git",
-                "reference": "132bb72fa0721cde574a51933d31456e46287acb"
+                "reference": "778d0b417221817290785840abb6c35619ff78c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TheWebChimp/NORM/zipball/132bb72fa0721cde574a51933d31456e46287acb",
-                "reference": "132bb72fa0721cde574a51933d31456e46287acb",
+                "url": "https://api.github.com/repos/TheWebChimp/NORM/zipball/778d0b417221817290785840abb6c35619ff78c1",
+                "reference": "778d0b417221817290785840abb6c35619ff78c1",
                 "shasum": ""
             },
             "require": {
@@ -453,7 +453,7 @@
                 "issues": "https://github.com/TheWebChimp/NORM/issues",
                 "source": "https://github.com/TheWebChimp/NORM/tree/v2.0.0"
             },
-            "time": "2022-01-18T00:11:20+00:00"
+            "time": "2022-02-25T00:40:50+00:00"
         }
     ],
     "packages-dev": [],
