@@ -5,7 +5,8 @@
 	"require": {
 		"webchimp/dabbie": "dev-main",
 		"webchimp/norm": ">=2.0",
-		"firebase/php-jwt": "^5.5"
+		"firebase/php-jwt": "^5.5",
+		"php-amqplib/php-amqplib": "^3.2"
 	},
 	"license": "MIT",
 	"autoload": {
