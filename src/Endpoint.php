@@ -552,7 +552,7 @@
 
 				if($this->request->type == 'put') {
 
-					$value = $this->request->put('value');
+					$value = $this->request->post('value');
 
 					$item->updateMeta($meta_name, $value);
 					$this->data = $item->getMeta($meta_name);
