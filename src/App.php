@@ -9,13 +9,10 @@
 
 	namespace CHAPI;
 
-	use CHAPI\Request;
-	use CHAPI\Response;
-	use CHAPI\Router;
-	use CHAPI\DotEnv;
-
 	use Dabbie\Dabbie;
 
+	use Dabbie\DabbieException;
+	use InvalidArgumentException;
 	use NORM\NORM;
 	use NORM\CROOD;
 
@@ -39,7 +36,7 @@
 		protected $pass_salt;
 		protected $token_salt;
 
-        public \CHAPI\Router $router;
+		public Router $router;
 
 		public static function getInstance() {
 
@@ -55,12 +52,12 @@
 		protected function __construct() {}
 
 		/**
-		 * @throws \Dabbie\DabbieException
+		 * @throws DabbieException
 		 */
 		function init() {
 
 			if(!$this->base_dir) {
-				throw new \InvalidArgumentException('CHAPI Error: base directory not defined');
+				throw new InvalidArgumentException('CHAPI Error: base directory not defined');
 			}
 
 			// Getting app profile
@@ -70,11 +67,11 @@
 			$config_dir = $this->config_dir ?? $this->base_dir . '/config';
 
 			if(!file_exists($config_dir . '/config.shared.ini')) {
-				throw new \InvalidArgumentException('CHAPI Error: Shared Config file missing');
+				throw new InvalidArgumentException('CHAPI Error: Shared Config file missing');
 			}
 
 			if(!file_exists($config_dir . '/config.' . PROFILE . '.ini')) {
-				throw new \InvalidArgumentException('CHAPI Error: ' . PROFILE . ' Config file missing');
+				throw new InvalidArgumentException('CHAPI Error: ' . PROFILE . ' Config file missing');
 			}
 
 			$settings['shared'] = parse_ini_file($config_dir . '/config.shared.ini', true, INI_SCANNER_TYPED);
@@ -87,7 +84,7 @@
 			$this->response = new Response();
 
 			if(!$this->profile['app_url']) {
-				throw new \InvalidArgumentException('CHAPI Error: PROFILE app_url not defined');
+				throw new InvalidArgumentException('CHAPI Error: PROFILE app_url not defined');
 			}
 
 			$this->router = new Router($this->profile['app_url']);
@@ -98,7 +95,7 @@
 			});
 
 			$router->all('/', function() use ($router) {
-				$router->getResponse()->ajaxRespond('success', [], 'App running, okey dokey 🐵🐵🐵');
+				$router->getResponse()->ajaxRespond('success', [], 'App running, okay dokey 🐵🐵🐵');
 			});
 
 			//$this->router->all('.*', 'CHAPI\App::routeRequest');
@@ -149,7 +146,7 @@
 			return $this->response;
 		}
 
-		function getRouter(): \CHAPI\Router {
+		function getRouter(): Router {
 			return $this->router;
 		}
 
@@ -184,7 +181,7 @@
 				mkdir($app->baseDir('/log'), 0777, true);
 			}
 
-			$log_file = $log_file ? $log_file : date('Y-m-d');
+			$log_file = $log_file ?: date('Y-m-d');
 			$file = fopen( $app->baseDir("/log/{$log_file}.log"), 'a');
 			$date = date('Y-m-d H:i:s');
 			if(is_array($data) || is_object($data)) $data = json_encode($data);
@@ -203,7 +200,7 @@
 			setlocale(LC_ALL, 'en_US.UTF8');
 			# Remove spaces
 			if( !empty($replace) ) {
-				$str = str_replace((array)$replace, ' ', $str);
+				$str = str_replace($replace, ' ', $str);
 			}
 			# Remove non-ascii characters
 			$clean = iconv('UTF-8', 'ASCII//TRANSIT', $str);

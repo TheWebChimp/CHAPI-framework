@@ -115,10 +115,10 @@
 		/**
 		 * Adds or prepends a route for all methods
 		 * @param string $route    Parametrized route
-		 * @param string $func     Handler function name
+		 * @param mixed $func     Handler function name
 		 * @param boolean $prepend  Determines if route should be prepended instead of added
 		 */
-		function all(string $route, string $func, bool $prepend = false) {
+		function all(string $route, $func, bool $prepend = false) {
 			if($prepend) $this->prepend($route, $func);
 			else $this->add($route, $func);
 		}

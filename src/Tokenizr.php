@@ -17,11 +17,11 @@
 	 *
 	 *    You can then save the token wherever you want. To check it back, use checkToken():
 	 *
-	 *      $valid = Tokenizr::checkToken('something.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+	 *      $valid = Tokenizr::checkToken('something....');
 	 *
 	 *    To get back the data, use getData():
 	 *
-	 *      $data = Tokenizr::getData('something.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+	 *      $data = Tokenizr::getData('something....');
 	 *
 	 *    Note that the data is saved in plain sight, THIS CLASS IS NOT DESIGNED TO ENCRYPT DATA. The purpose
 	 *    of this class is to provide a way to check if the data (from a cookie, for example) has been generated

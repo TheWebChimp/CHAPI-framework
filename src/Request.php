@@ -23,7 +23,7 @@
 		 * Constructor
 		 */
 		function __construct() {
-			$this->type = strtolower( isset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ) ? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] : get_item($_SERVER, 'REQUEST_METHOD') );
+			$this->type = strtolower($_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] ?? get_item($_SERVER, 'REQUEST_METHOD'));
 			$this->parts = [];
 		}
 
@@ -54,27 +54,27 @@
 		}
 
 		/**
-		 * Get a variable from the $_REQUEST superglobal
+		 * Get a variable from the $_REQUEST super global
 		 * @param string $name    Variable name
 		 * @param string $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
 		function param(string $name = '', string $default = '') {
-			return $name ? ( isset( $_REQUEST[$name] ) ? $_REQUEST[$name] : $default ) : $_REQUEST;
+			return $name ? ($_REQUEST[$name] ?? $default) : $_REQUEST;
 		}
 
 		/**
-		 * Get a variable from the $_GET superglobal
+		 * Get a variable from the $_GET super global
 		 * @param string $name    Variable name
 		 * @param string $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
 		function get(string $name = '', string $default = '') {
-			return $name ? ( isset( $_GET[$name] ) ? $_GET[$name] : $default ) : $_GET;
+			return $name ? ($_GET[$name] ?? $default) : $_GET;
 		}
 
 		/**
-		 * Get a variable from the $_POST superglobal
+		 * Get a variable from the $_POST super global
 		 * @param string $name    Variable name
 		 * @param string $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
@@ -91,8 +91,7 @@
 		 */
 		function put(string $name = '', string $default = '') {
 			parse_str($this->readInput(), $put_vars);
-			$ret = $name ? ($put_vars[$name] ?? $default) : $put_vars;
-			return $ret;
+			return $name ? ($put_vars[$name] ?? $default) : $put_vars;
 		}
 
 		/**
@@ -102,8 +101,7 @@
 		 * @return mixed           Variable value or $default
 		 */
 		function session(string $name = '', string $default = '') {
-			$ret = $name ? ($_SESSION[$name] ?? $default) : $_SESSION;
-			return $ret;
+			return $name ? ($_SESSION[$name] ?? $default) : $_SESSION;
 		}
 
 		/**
@@ -112,17 +110,16 @@
 		 * @return mixed        Array with file properties or Null
 		 */
 		function files(string $name = '') {
-			$ret = $name ? ($_FILES[$name] ?? null) : $_FILES;
-			return $ret;
+			return $name ? ($_FILES[$name] ?? null) : $_FILES;
 		}
 
 		/**
 		 * Get a variable from the $_SERVER super global
-		 * @param  string $name    Variable name
+		 * @param string $name    Variable name
 		 * @param string $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
-		function server($name, string $default = '') {
+		function server(string $name, string $default = '') {
 			return $_SERVER[$name] ?? $default;
 		}
 
