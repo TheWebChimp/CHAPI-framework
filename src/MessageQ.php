@@ -10,7 +10,7 @@
 		public $channel;
 		public $queue;
 
-		static function newInstance($queue = 'base_queue') {
+		static function newInstance($queue = 'base_queue'): MessageQ {
 			$new = new self();
 
 			$new->queue = $queue;
@@ -21,7 +21,7 @@
 			return $new;
 		}
 
-		function sendMessage($data) {
+		function sendMessage($data): bool {
 
 			$msg = new AMQPMessage(
 				$data,
@@ -32,11 +32,10 @@
 			return true;
 		}
 
-		function close() {
+		function close(): bool {
 
 			$this->channel->close();
 			$this->connection->close();
 			return true;
 		}
 	}
-?>

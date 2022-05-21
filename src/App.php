@@ -39,6 +39,8 @@
 		protected $pass_salt;
 		protected $token_salt;
 
+        public \CHAPI\Router $router;
+
 		public static function getInstance() {
 
 			static::$instance = static::$instance ?? new static();
@@ -46,16 +48,19 @@
 		}
 
 		/**
-		 * Private constructor to prevent creating a new instance of the *App* via the `new` operator from outside of this class.
+		 * Private constructor to prevent creating a new instance of the *App* via the `new` operator from outside this class.
 		 *
 		 * @return void
 		 */
 		protected function __construct() {}
 
+		/**
+		 * @throws \Dabbie\DabbieException
+		 */
 		function init() {
 
 			if(!$this->base_dir) {
-				throw new \InvalidArgumentException(sprintf('CHAPI Error: base directory not defined'));
+				throw new \InvalidArgumentException('CHAPI Error: base directory not defined');
 			}
 
 			// Getting app profile
@@ -65,11 +70,11 @@
 			$config_dir = $this->config_dir ?? $this->base_dir . '/config';
 
 			if(!file_exists($config_dir . '/config.shared.ini')) {
-				throw new \InvalidArgumentException(sprintf('CHAPI Error: Shared Config file missing'));
+				throw new \InvalidArgumentException('CHAPI Error: Shared Config file missing');
 			}
 
 			if(!file_exists($config_dir . '/config.' . PROFILE . '.ini')) {
-				throw new \InvalidArgumentException(sprintf('CHAPI Error: ' . PROFILE . ' Config file missing'));
+				throw new \InvalidArgumentException('CHAPI Error: ' . PROFILE . ' Config file missing');
 			}
 
 			$settings['shared'] = parse_ini_file($config_dir . '/config.shared.ini', true, INI_SCANNER_TYPED);
@@ -82,7 +87,7 @@
 			$this->response = new Response();
 
 			if(!$this->profile['app_url']) {
-				throw new \InvalidArgumentException(sprintf('CHAPI Error: PROFILE app_url not defined'));
+				throw new \InvalidArgumentException('CHAPI Error: PROFILE app_url not defined');
 			}
 
 			$this->router = new Router($this->profile['app_url']);
@@ -144,7 +149,7 @@
 			return $this->response;
 		}
 
-		function getRouter() {
+		function getRouter(): \CHAPI\Router {
 			return $this->router;
 		}
 
@@ -154,11 +159,11 @@
 
 		/**
 		 * Get base folder
-		 * @param  string  $path Path to append
-		 * @param  boolean $echo Whether to print the resulting string or not
+		 * @param string $path Path to append
+		 * @param boolean $echo Whether to print the resulting string or not
 		 * @return string        The well-formed path
 		 */
-		function baseDir($path = '', $echo = false) {
+		function baseDir(string $path = '', bool $echo = false): string {
 			$ret = sprintf('%s%s', $this->base_dir, $path);
 			if($echo) {
 				echo $ret;
@@ -169,10 +174,10 @@
 		/**
 		 * Log something to file
 		 * @param  mixed  $data     What to log
-		 * @param  string $log_file Log name, without extension
-		 * @return nothing
-		 */
-		public static function log_to_file($data, $log_file = '') {
+		 * @param string $log_file Log name, without extension
+		 * @return void
+         */
+		public static function log_to_file($data, string $log_file = '') {
 			$app = App::getInstance();
 
 			if (!file_exists($app->baseDir('/log'))) {
@@ -182,52 +187,46 @@
 			$log_file = $log_file ? $log_file : date('Y-m-d');
 			$file = fopen( $app->baseDir("/log/{$log_file}.log"), 'a');
 			$date = date('Y-m-d H:i:s');
-			if(is_array($data) || is_object($data)) {
-				$data = json_encode($data);
-			}
+			if(is_array($data) || is_object($data)) $data = json_encode($data);
 			fwrite($file, "{$date} - {$data}\n");
 			fclose($file);
 		}
 
 		/**
 		 * Sanitize the given string (slugify it)
-		 * @param  string $str       The string to sanitize
-		 * @param  array  $replace   Optional, an array of characters to replace
-		 * @param  string $delimiter Optional, specify a custom delimiter
+		 * @param string $str       The string to sanitize
+		 * @param array  $replace   Optional, an array of characters to replace
+		 * @param string $delimiter Optional, specify a custom delimiter
 		 * @return string            Sanitized string
 		 */
-		function toAscii($str, $replace = [], $delimiter = '-') {
+		function toAscii(string $str, array $replace = [], string $delimiter = '-'): string {
 			setlocale(LC_ALL, 'en_US.UTF8');
 			# Remove spaces
 			if( !empty($replace) ) {
 				$str = str_replace((array)$replace, ' ', $str);
 			}
 			# Remove non-ascii characters
-			$clean = iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-			# Remove non alphanumeric characters and lowercase the result
-			$clean = preg_replace("/[^a-zA-Z0-9\/_|+ -]/", '', $clean);
+			$clean = iconv('UTF-8', 'ASCII//TRANSIT', $str);
+			# Remove non-alphanumeric characters and lowercase the result
+			$clean = preg_replace("/[^a-zA-Z\d\/_|+ -]/", '', $clean);
 			$clean = strtolower(trim($clean, '-'));
 			# Remove other unwanted characters
-			$clean = preg_replace("/[\/_|+ -]+/", $delimiter, $clean);
-			return $clean;
+            return preg_replace("/[\/_|+ -]+/", $delimiter, $clean);
 		}
 
-		function slugify($str, $replace = [], $delimiter = '-') {
+		function slugify($str, $replace = [], $delimiter = '-'): string {
 			return $this->toAscii($str, $replace, $delimiter);
 		}
 
 		/**
 		 * Hash the specified token
-		 * @param  mixed  $action  Action name(s), maybe a single string or an array of strings
-		 * @param  boolean $echo   Whether to output the resulting string or not
-		 * @return string          The hashed token
+		 * @param mixed   $action Action name(s), maybe a single string or an array of strings
+		 * @param boolean $echo   Whether to output the resulting string or not
+		 * @return string         The hashed token
 		 */
-		function hashToken($action, $echo = false) {
+		function hashToken($action, bool $echo = false): string {
 			if(is_array($action)) {
-				$action_str = '';
-				foreach ($action as $item) {
-					$action_str .= $item;
-				}
+				$action_str = implode('', $action);
 				$ret = md5($this->token_salt.$action_str);
 			} else {
 				$ret = md5($this->token_salt.$action);
@@ -238,11 +237,11 @@
 
 		/**
 		 * Hash the specified password
-		 * @param  string  $password 	Plain-text password
-		 * @param  boolean $echo   		Whether to output the resulting string or not
-		 * @return string          		The hashed password
+		 * @param string  $password Plain-text password
+		 * @param boolean $echo     Whether to output the resulting string or not
+		 * @return string           The hashed password
 		 */
-		function hashPassword($password, $echo = false) {
+		function hashPassword(string $password, bool $echo = false): string {
 			$ret = md5($this->pass_salt.$password);
 			if($echo) echo $ret;
 			return $ret;
@@ -250,39 +249,35 @@
 
 		/**
 		 * Validate the given token with the specified action
-		 * @param  string $token  Hashed token
-		 * @param  string $action Action name
-		 * @return boolean        True if the token is valid, False otherwise
+		 * @param string $token  Hashed token
+		 * @param string $action Action name
+		 * @return boolean       True if the token is valid, False otherwise
 		 */
-		function validateToken($token, $action) {
+		function validateToken(string $token, string $action): bool {
 			$check = $this->hashToken($action);
 			return ($token == $check);
 		}
 
 		/**
 		 * Register a hook listener
-		 * @param  string  $hook      Hook name
-		 * @param  string  $functName Callback function name
-		 * @param  boolean $prepend   Whether to add the listener at the beginning or the end
+		 * @param string  $hook         Hook name
+		 * @param string  $functionName Callback function name
+		 * @param boolean $prepend      Whether to add the listener at the beginning or the end
 		 */
-		function registerHook($hook, $functName, $prepend = false) {
-			if(!isset( $this->hooks[$hook] )) {
-				$this->hooks[$hook] = [];
-			}
-			if($prepend) {
-				array_unshift($this->hooks[$hook], $functName);
-			} else {
-				array_push($this->hooks[$hook], $functName);
+		function registerHook(string $hook, string $functionName, bool $prepend = false) {
+			if(!isset( $this->hooks[$hook] )) $this->hooks[$hook] = [];
+			if($prepend) array_unshift($this->hooks[$hook], $functionName); else {
+				$this->hooks[$hook][] = $functionName;
 			}
 		}
 
 		/**
 		 * Execute a hook (run each listener incrementally)
-		 * @param  string $hook   	Hook name
-		 * @param  mixed  $params 	Parameters to pass to each callback function
-		 * @return mixed          	The processed data or the same data if no callbacks were found
+		 * @param string $hook   Hook name
+		 * @param mixed  $params Parameters to pass to each callback function
+		 * @return array|false   The processed data or the same data if no callbacks were found
 		 */
-		function executeHook($hook, $params = '') {
+		function executeHook(string $hook, $params = '') {
 			if(isset( $this->hooks[$hook] )) {
 				$hooks = $this->hooks[$hook];
 				$ret = [];
@@ -296,11 +291,11 @@
 
 		/**
 		 * Get the specified option from the current profile
-		 * @param  string $key     Option name
-		 * @param  string $default Default value
+		 * @param string $key     Option name
+		 * @param string $default Default value
 		 * @return mixed           The option value (array, string, integer, boolean, etc)
 		 */
-		function getOption($key, $default = '') {
+		function getOption(string $key, string $default = '') {
 			$ret = $default;
 			if(isset( $this->profile[$key] )) {
 				$ret = $this->profile[$key];
@@ -310,11 +305,11 @@
 
 		/**
 		 * Get the specified option from the global profile
-		 * @param  string $key     Option name
-		 * @param  string $default Default value
+		 * @param string $key     Option name
+		 * @param string $default Default value
 		 * @return mixed           The option value (array, string, integer, boolean, etc)
 		 */
-		function getGlobal($key, $default = '') {
+		function getGlobal(string $key, string $default = '') {
 			$ret = $default;
 			if(isset( $this->globals[$key] )) {
 				$ret = $this->globals[$key];
@@ -324,10 +319,10 @@
 
 		/**
 		 * Get the app name
-		 * @param  boolean $echo Print the result?
+		 * @param boolean $echo Print the result?
 		 * @return string        App name
 		 */
-		function getAppTitle($echo = false) {
+		function getAppTitle(bool $echo = false): string {
 			$ret = $this->app_title;
 			if($echo) echo $ret;
 
@@ -342,10 +337,9 @@
 		private function __clone() {}
 
 		/**
-		 * Private unserialize method to prevent unserializing of the *App* instance.
+		 * Private serialize method to prevent serializing of the *App* instance.
 		 *
 		 * @return void
 		 */
 		private function __wakeup() {}
 	}
-?>

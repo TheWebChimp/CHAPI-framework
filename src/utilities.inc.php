@@ -22,8 +22,8 @@
 	if(!function_exists('get_item')) {
 		function get_item($var, $key, $default = '') {
 			return is_object($var) ?
-				( isset( $var->$key ) ? $var->$key : $default ) :
-				( isset( $var[$key] ) ? $var[$key] : $default );
+				($var->$key ?? $default) :
+				($var[$key] ?? $default);
 		}
 	}
 
@@ -57,7 +57,11 @@
 	}
 
 	if(!function_exists('isJson')) {
-		function isJson($string) {
+		/**
+		 * @param $string
+		 * @return bool
+		 */
+		function isJson($string): bool {
 			json_decode($string);
 			return (json_last_error() == JSON_ERROR_NONE);
 		}
@@ -69,12 +73,12 @@
 	 * @return string      The converted string
 	 */
 	if(!function_exists('camel_to_snake')) {
-		function camel_to_snake($val) {
+		function camel_to_snake($val): string {
 			$val = preg_replace_callback('/[A-Z]/', '_camel_to_snake_callback', $val);
 			return ltrim($val, '_');
 		}
 
-		function _camel_to_snake_callback($match) {
+		function _camel_to_snake_callback($match): string {
 			return "_" . strtolower($match[0]);
 		}
 	}
@@ -86,12 +90,12 @@
 	 * @return string      The converted string
 	 */
 	if(!function_exists('camel_to_dash')) {
-		function camel_to_dash($val) {
+		function camel_to_dash($val): string {
 			$val = preg_replace_callback('/[A-Z]/', '_camel_to_dash_callback', $val);
 			return ltrim($val, '-');
 		}
 
-		function _camel_to_dash_callback($match) {
+		function _camel_to_dash_callback($match): string {
 			return "-" . strtolower($match[0]);
 		}
 	}
@@ -102,10 +106,9 @@
 	 * @return string      The converted string
 	 */
 	if(!function_exists('snake_to_camel')) {
-		function snake_to_camel($val) {
+		function snake_to_camel($val): string {
 			$val = str_replace(' ', '', ucwords(str_replace('_', ' ', $val)));
-			$val = strtolower(substr($val, 0, 1)).substr($val, 1);
-			return $val;
+			return strtolower(substr($val, 0, 1)).substr($val, 1);
 		}
 	}
 
@@ -115,10 +118,9 @@
 	 * @return string      The converted string
 	 */
 	if(!function_exists('dash_to_camel')) {
-		function dash_to_camel($val) {
+		function dash_to_camel($val): string {
 			$val = str_replace(' ', '', ucwords(str_replace('-', ' ', $val)));
-			$val = strtolower(substr($val, 0, 1)).substr($val, 1);
-			return $val;
+			return strtolower(substr($val, 0, 1)).substr($val, 1);
 		}
 	}
 
@@ -127,11 +129,10 @@
 	 * @param  number $number   The quantity
 	 * @param  string $singular Singular form of the word
 	 * @param  string $plural   Plural form of the word
-	 * @return string           The appropiate form of the word
+	 * @return string           The appropriate form of the word
 	 */
 	if(!function_exists('singular_plural')) {
 		function singular_plural($number, $singular, $plural = '') {
-			return $number == 1 ? $singular : ($plural ? $plural : "{$singular}s");
+			return $number == 1 ? $singular : ($plural ?: "{$singular}s");
 		}
 	}
-?>

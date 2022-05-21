@@ -7,7 +7,7 @@
 	 * @license MIT
 	 * @example Basic usage:
 	 *
-	 *    Use getToken() to tokenize your data. It will return an string with the source data and its message digest:
+	 *    Use getToken() to tokenize your data. It will return a string with the source data and its message digest:
 	 *
 	 *      $token = Tokenizr::getToken('something');
 	 *
@@ -36,15 +36,15 @@
 
 		/**
 		 * Generate a token
-		 * @param  mixed  $data    String or array with data to hash
-		 * @param  string $divider Divider character
+		 * @param mixed $data String or array with data to hash
+		 * @param $key
+		 * @param string $divider Divider character
 		 * @return string          The resulting token
 		 */
-		static function getToken($data, $key, $divider = '.') {
-			$ret = false;
+		static function getToken($data, $key, string $divider = '.'): string {
 			if ( is_array($data) ) {
 				$data = http_build_query($data);
-				$ret = self::getToken($data);
+				$ret = self::getToken($data, $key);
 			} else {
 				$hash = hash_hmac('sha256', $data, $key);
 				$ret = "{$data}{$divider}{$hash}";
@@ -54,12 +54,11 @@
 
 		/**
 		 * Check whether a given token is valid or not
-		 * @param  string $token   The token to check
-		 * @param  string $divider Divider character
+		 * @param string $token   The token to check
+		 * @param string $divider Divider character
 		 * @return bool            TRUE if the token is valid, FALSE otherwise
 		 */
-		static function checkToken($token, $key, $divider = '.') {
-			global $app;
+		static function checkToken(string $token, $key, string $divider = '.'): bool {
 			$ret = false;
 			$parts = explode($divider, $token);
 			$data = get_item($parts, 0);
@@ -73,13 +72,11 @@
 
 		/**
 		 * Retrieve token data
-		 * @param  string $token   The token to get data from
-		 * @param  string $divider Divider character
+		 * @param string $token The token to get data from
+		 * @param string $divider Divider character
 		 * @return mixed           The retrieved data, either a string or an array
 		 */
-		static function getData($token, $key, $divider = '.') {
-			global $app;
-			$ret = false;
+		static function getData(string $token, string $divider = '.') {
 			$parts = explode($divider, $token);
 			$data = get_item($parts, 0);
 			if ( strpos($data, '&') ) {
@@ -91,4 +88,3 @@
 			return $ret;
 		}
 	}
-?>

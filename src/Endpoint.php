@@ -9,10 +9,33 @@
 
 	namespace CHAPI;
 
+	use Exception;
 	use Firebase\JWT\JWT;
 	use Firebase\JWT\Key;
 
 	abstract class Endpoint {
+		public string $message;
+		public array $data;
+		public array $properties;
+		public int $status;
+		public string $result;
+		public $router;
+		public $request;
+		public $response;
+		/**
+		 * @var array|string|string[]
+		 */
+		public $plural;
+		public string $singular;
+		/**
+		 * @var array|string|string[]
+		 */
+		public $endpoint;
+		public bool $listJWT;
+		public bool $createJWT;
+		public bool $updateJWT;
+		public bool $deleteJWT;
+		public bool $singleJWT;
 
 		/**
 		 * Constructor
@@ -43,7 +66,7 @@
 
 				$this->setupRoutes();
 
-				//JWT's
+				// JWT
 
 				$this->listJWT = true;
 				$this->createJWT = true;
@@ -59,7 +82,7 @@
 			$this->init();
 		}
 
-		function getIds($obj_array) {
+		function getIds($obj_array): array {
 
 			$ids = [];
 			foreach($obj_array as $obj) {
@@ -81,9 +104,10 @@
 			if($val) {
 
 				$condition = $condition ?: "{$key} = '%s'";
-				return $val != '' && $val != null ? sprintf($condition, $val) : '';
+				return $val != '' ? sprintf($condition, $val) : '';
 			}
 
+			return false;
 		}
 
 		function setupRoutes() {
@@ -91,7 +115,6 @@
 			$called_class =  get_called_class();
 			$endpoint = strtolower(str_replace('-endpoint', '', camel_to_dash($called_class)));
 			$router = $this->router;
-			$endpoint_instance = $this;
 
 			if($router->getRequest()->type == 'post' || $router->getRequest()->type == 'put') {
 				$raw_input = $router->getRequest()->readInput();
@@ -172,7 +195,7 @@
 						$message = 'Token expired';
 					}
 
-				} catch (\Exception $e) {
+				} catch (Exception $e) {
 
 					$this->response->setStatus(401);
 					$message = "Exception caught: " . $e->getMessage();
@@ -189,8 +212,8 @@
 			return $ret;
 		}
 
-		function addRoute($route, $functName, $method = '*') {
-			$this->router->prepend('/' . camel_to_dash($this->plural) . '/' . $route, $functName, $method);
+		function addRoute($route, $functionName, $method = '*') {
+			$this->router->prepend('/' . camel_to_dash($this->plural) . '/' . $route, $functionName, $method);
 		}
 
 		function respond() {
@@ -199,17 +222,16 @@
 		}
 
 		function getItemById($id, $args = []) {
-
-			$item = $this->plural::getById($id, $args);
-			return $item;
+			return $this->plural::getById($id, $args);
 		}
 
 		function allItemInId($id, $args) {
-
-			$items = $this->plural::allInId($id, $args);
-			return $items;
+			return $this->plural::allInId($id, $args);
 		}
 
+		/**
+		 * @throws Exception
+		 */
 		function upsert($item) {
 			$metas = $this->request->post('metas');
 
@@ -238,7 +260,9 @@
 					return $item;
 				}
 
-			} catch(\Exception $e) { throw new \Exception('CHAPI Endpoint: Error at saving through upsert: ' . $e->getMessage()); }
+			} catch(Exception $e) { throw new Exception('CHAPI Endpoint: Error at saving through upsert: ' . $e->getMessage()); }
+
+			return false;
 		}
 
 		function filterListConditions($conditions) {
@@ -247,7 +271,7 @@
 		}
 
 		/**
-		 * Initialization callback, must be overriden in your extended classes
+		 * Initialization callback, must be overridden in your extended classes
 		 */
 		abstract function init();
 
@@ -300,7 +324,7 @@
 			//Fetch
 			foreach($_GET as $key => $value) {
 
-				if(preg_match('/fetch_(?<entity>.*)/', $key, $matches)) {
+				if(preg_match('/fetch_(?<entity>.*)/', $key)) {
 					$args['args'][$key] = $value;
 				}
 			}
@@ -356,7 +380,7 @@
 					$this->message = "Error creating {$this->singular}";
 				}
 
-			} catch (\Exception $e) {
+			} catch (Exception $e) {
 
 				$this->result = 'error';
 				$this->status = 409;
@@ -391,7 +415,7 @@
 						$this->message = "Error updating {$this->singular}";
 					}
 
-				} catch (\Exception $e) {
+				} catch (Exception $e) {
 
 					$this->result = 'error';
 					$this->status = 409;
@@ -413,7 +437,6 @@
 
 			$ids = $multiple ? explode(',', $id) : [];
 
-			$ids_deleted = [];
 			$errors = [];
 
 			if(!$multiple) {
@@ -438,7 +461,7 @@
 							$this->message = 'Error deleting {$this->singular}';
 						}
 
-					} catch(\Exception $e) {
+					} catch(Exception $e) {
 
 						$this->result = 'error';
 						$this->status = 409;
@@ -454,7 +477,6 @@
 			} else {
 
 				$success = [];
-				$errors = [];
 
 				foreach($ids as $id) {
 
@@ -475,7 +497,7 @@
 								$errors[] = $id;
 							}
 
-						} catch(\Exception $e) {
+						} catch(Exception $e) {
 
 							$errors[] = $id;
 						}
@@ -497,7 +519,7 @@
 
 				} else {
 
-					$this->message = (count($success) == 1 ? $this->singular : $this->plural) . ' with id' . (count($errors) == 1 ? '' : 's') . ' ' . implode(', ', $errors) . " not deleted because error.";
+					$this->message = $this->plural . ' with id' . (count($errors) == 1 ? '' : 's') . ' ' . implode(', ', $errors) . " not deleted because error.";
 					$this->status = 409;
 				}
 			}
@@ -568,4 +590,3 @@
 			$this->respond();
 		}
 	}
-?>
