@@ -14,34 +14,75 @@
 	use Firebase\JWT\Key;
 
 	abstract class Endpoint {
+		/**
+		 * @var string
+		 */
 		public string $message;
+		/**
+		 * @var array
+		 */
 		public array $data;
+		/**
+		 * @var array
+		 */
 		public array $properties;
+		/**
+		 * @var int
+		 */
 		public int $status;
+		/**
+		 * @var string
+		 */
 		public string $result;
+		/**
+		 * @var Router
+		 */
 		public $router;
+		/**
+		 * @var Request
+		 */
 		public $request;
+		/**
+		 * @var
+		 */
 		public $response;
 		/**
 		 * @var array|string|string[]
 		 */
 		public $plural;
+		/**
+		 * @var string
+		 */
 		public string $singular;
 		/**
 		 * @var array|string|string[]
 		 */
 		public $endpoint;
+		/**
+		 * @var bool
+		 */
 		public bool $listJWT;
+		/**
+		 * @var bool
+		 */
 		public bool $createJWT;
+		/**
+		 * @var bool
+		 */
 		public bool $updateJWT;
+		/**
+		 * @var bool
+		 */
 		public bool $deleteJWT;
+		/**
+		 * @var bool
+		 */
 		public bool $singleJWT;
 
 		/**
 		 * Constructor
 		 */
 		function __construct() {
-
 			global $app;
 
 			$this->message = '';
@@ -54,10 +95,9 @@
 			$this->request = $app->router->getRequest();
 			$this->response = $app->router->getResponse();
 
-			$called_class =  get_called_class();
+			$called_class = get_called_class();
 
 			if(!(isset($this->isModel) && $this->isModel === false)) {
-
 				$this->plural = str_replace('Endpoint', '', $called_class);
 				$this->singular = rtrim($this->plural, 's');
 				$this->endpoint = $this->plural;
@@ -73,15 +113,17 @@
 				$this->updateJWT = true;
 				$this->deleteJWT = true;
 				$this->singleJWT = true;
-
 			} else {
-
 				$this->endpoint = strtolower($called_class);
 			}
 
 			$this->init();
 		}
 
+		/**
+		 * @param $obj_array
+		 * @return array
+		 */
 		function getIds($obj_array): array {
 
 			$ids = [];
@@ -96,13 +138,17 @@
 			return $ids;
 		}
 
-		static function addCondition($key, $condition = false) {
+		/**
+		 * @param $key
+		 * @param bool $condition
+		 * @return false|string
+		 */
+		static function addCondition($key, bool $condition = false) {
 			global $app;
 			$request = $app->getRequest();
 
 			$val = $request->get($key);
 			if($val) {
-
 				$condition = $condition ?: "{$key} = '%s'";
 				return $val != '' ? sprintf($condition, $val) : '';
 			}
@@ -110,9 +156,11 @@
 			return false;
 		}
 
+		/**
+		 * @return void
+		 */
 		function setupRoutes() {
-
-			$called_class =  get_called_class();
+			$called_class = get_called_class();
 			$endpoint = strtolower(str_replace('-endpoint', '', camel_to_dash($called_class)));
 			$router = $this->router;
 
@@ -126,7 +174,9 @@
 					$php_input = $router->getRequest()->put();
 				}
 
-				if($php_input) { $_POST = $php_input; }
+				if($php_input) {
+					$_POST = $php_input;
+				}
 			}
 
 			//Metas
@@ -164,8 +214,10 @@
 			$router->get("/{$endpoint}/{id}", [$this, 'single']);
 		}
 
+		/**
+		 * @return void
+		 */
 		function requireJWT() {
-
 			global $app;
 			$token = $this->request->getBearerToken();
 
@@ -174,7 +226,6 @@
 
 			if($token) {
 				try {
-
 					$payload = JWT::decode($token, new Key($app->getGlobal('jwt_secret'), 'HS256'));
 
 					if($payload->exp >= time()) {
@@ -194,9 +245,7 @@
 						$this->response->setStatus(401);
 						$message = 'Token expired';
 					}
-
-				} catch (Exception $e) {
-
+				} catch(Exception $e) {
 					$this->response->setStatus(401);
 					$message = "Exception caught: " . $e->getMessage();
 					error_log($e->getMessage());
@@ -212,24 +261,45 @@
 			return $ret;
 		}
 
-		function addRoute($route, $functionName, $method = '*') {
+		/**
+		 * @param $route
+		 * @param $functionName
+		 * @param string $method
+		 * @return void
+		 */
+		function addRoute($route, $functionName, string $method = '*') {
 			$this->router->prepend('/' . camel_to_dash($this->plural) . '/' . $route, $functionName, $method);
 		}
 
+		/**
+		 * @return void
+		 */
 		function respond() {
 			$this->response->ajaxRespond($this->result, $this->data, $this->message, $this->properties);
 			exit;
 		}
 
-		function getItemById($id, $args = []) {
+		/**
+		 * @param $id
+		 * @param array $args
+		 * @return mixed
+		 */
+		function getItemById($id, array $args = []) {
 			return $this->plural::getById($id, $args);
 		}
 
+		/**
+		 * @param $id
+		 * @param $args
+		 * @return mixed
+		 */
 		function allItemInId($id, $args) {
 			return $this->plural::allInId($id, $args);
 		}
 
 		/**
+		 * @param $item
+		 * @return false|mixed
 		 * @throws Exception
 		 */
 		function upsert($item) {
@@ -265,6 +335,10 @@
 			return false;
 		}
 
+		/**
+		 * @param $conditions
+		 * @return mixed
+		 */
 		function filterListConditions($conditions) {
 
 			return $conditions;
@@ -323,7 +397,6 @@
 
 			//Fetch
 			foreach($_GET as $key => $value) {
-
 				if(preg_match('/fetch_(?<entity>.*)/', $key)) {
 					$args['args'][$key] = $value;
 				}
@@ -360,28 +433,24 @@
 			$this->respond();
 		}
 
+		/**
+		 * @return void
+		 */
 		function create() {
-
 			$this->requireJWT();
 
 			try {
-
 				$item = $this->upsert(new $this->singular);
 
 				if($item) {
-
 					$this->data = $item;
 					$this->result = 'success';
 					$this->message = "{$this->singular} has been created successfully";
-
 				} else {
-
 					$this->status = 409;
 					$this->message = "Error creating {$this->singular}";
 				}
-
-			} catch (Exception $e) {
-
+			} catch(Exception $e) {
 				$this->result = 'error';
 				$this->status = 409;
 				$this->message = $e->getMessage();
@@ -390,6 +459,10 @@
 			$this->respond();
 		}
 
+		/**
+		 * @param $id
+		 * @return void
+		 */
 		function update($id) {
 
 			$this->requireJWT();
@@ -430,6 +503,10 @@
 			$this->respond();
 		}
 
+		/**
+		 * @param $id
+		 * @return void
+		 */
 		function delete($id) {
 
 			$this->requireJWT();
@@ -527,6 +604,10 @@
 			$this->respond();
 		}
 
+		/**
+		 * @param $id
+		 * @return void
+		 */
 		function single($id) {
 
 			$this->requireJWT();
@@ -559,6 +640,11 @@
 			$this->respond();
 		}
 
+		/**
+		 * @param $id
+		 * @param $meta_name
+		 * @return void
+		 */
 		function meta($id, $meta_name) {
 
 			$this->requireJWT();

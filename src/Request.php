@@ -56,40 +56,40 @@
 		/**
 		 * Get a variable from the $_REQUEST super global
 		 * @param string $name    Variable name
-		 * @param string $default Default value to return if the variable is not set
+		 * @param mixed $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
-		function param(string $name = '', string $default = '') {
+		function param(string $name = '', $default = '') {
 			return $name ? ($_REQUEST[$name] ?? $default) : $_REQUEST;
 		}
 
 		/**
 		 * Get a variable from the $_GET super global
 		 * @param string $name    Variable name
-		 * @param string $default Default value to return if the variable is not set
+		 * @param mixed $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
-		function get(string $name = '', string $default = '') {
+		function get(string $name = '', $default = '') {
 			return $name ? ($_GET[$name] ?? $default) : $_GET;
 		}
 
 		/**
 		 * Get a variable from the $_POST super global
 		 * @param string $name    Variable name
-		 * @param string $default Default value to return if the variable is not set
+		 * @param mixed $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
-		function post(string $name = '', string $default = '') {
+		function post(string $name = '', $default = '') {
 			return $name ? ($_POST[$name] ?? $default) : $_POST;
 		}
 
 		/**
 		 * Get a variable from the PUT stream
 		 * @param string $name    Variable name
-		 * @param string $default Default value to return if the variable is not set
+		 * @param mixed $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
-		function put(string $name = '', string $default = '') {
+		function put(string $name = '', $default = '') {
 			parse_str($this->readInput(), $put_vars);
 			return $name ? ($put_vars[$name] ?? $default) : $put_vars;
 		}
@@ -97,10 +97,10 @@
 		/**
 		 * Get a variable from the $_SESSION super global
 		 * @param string $name    Variable name
-		 * @param string $default Default value to return if the variable is not set
+		 * @param mixed $default Default value to return if the variable is not set
 		 * @return mixed           Variable value or $default
 		 */
-		function session(string $name = '', string $default = '') {
+		function session(string $name = '', $default = '') {
 			return $name ? ($_SESSION[$name] ?? $default) : $_SESSION;
 		}
 
