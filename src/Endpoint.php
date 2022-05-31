@@ -13,6 +13,9 @@
 	use Firebase\JWT\JWT;
 	use Firebase\JWT\Key;
 
+	/**
+	 *
+	 */
 	abstract class Endpoint {
 		/**
 		 * @var string

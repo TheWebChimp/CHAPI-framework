@@ -4,7 +4,7 @@
 
 	use Closure;
 	use Exception;
-
+	
 	class Router {
 
 		private $base_url;
@@ -50,6 +50,8 @@
 						</html>';
 			$markup = sprintf($markup, $message);
 			echo $markup;
+
+			# TODO Aggregate endpoint de cities
 		}
 
 		/**
@@ -105,10 +107,10 @@
 		/**
 		 * Prepends a new route (puts it in first place of routes array).
 		 * @param string $route  Parametrized route
-		 * @param string $func   Handler function name
+		 * @param mixed $func   Handler function name
 		 * @param string $method Method to use, can be GET, POST, PUT, DELETE or * for all
 		 */
-		function prepend(string $route, string $func, string $method = '*') {
+		function prepend(string $route, $func, string $method = '*') {
 			$this->routes = ["{$method}::{$route}" => $func] + $this->routes;
 		}
 
@@ -123,22 +125,46 @@
 			else $this->add($route, $func);
 		}
 
-		function get($route, $func, $prepend = false) {
+		/**
+		 * @param $route
+		 * @param $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function get($route, $func, bool $prepend = false) {
 			if($prepend) $this->prepend($route, $func, 'get');
 			else $this->add($route, $func, 'get');
 		}
 
-		function post($route, $func, $prepend = false) {
+		/**
+		 * @param $route
+		 * @param $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function post($route, $func, bool $prepend = false) {
 			if($prepend) $this->prepend($route, $func, 'post');
 			else $this->add($route, $func, 'post');
 		}
 
-		function put($route, $func, $prepend = false) {
+		/**
+		 * @param $route
+		 * @param $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function put($route, $func, bool $prepend = false) {
 			if($prepend) $this->prepend($route, $func, 'put');
 			else $this->add($route, $func, 'put');
 		}
 
-		function delete($route, $func, $prepend = false) {
+		/**
+		 * @param $route
+		 * @param $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function delete($route, $func, bool $prepend = false) {
 			if($prepend) $this->prepend($route, $func, 'delete');
 			else $this->add($route, $func, 'delete');
 		}

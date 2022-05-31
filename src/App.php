@@ -18,27 +18,69 @@
 
 	include('utilities.inc.php');
 
+	/**
+	 *
+	 */
 	class App {
 
-		private static $instance;
+		/**
+		 * @var App
+		 */
+		private static App $instance;
 
-		protected $globals;
-		protected $profile;
+		/**
+		 * @var array
+		 */
+		protected array $globals;
+		/**
+		 * @var array
+		 */
+		protected array $profile;
+		/**
+		 * @var
+		 */
 		protected $request;
+		/**
+		 * @var
+		 */
 		protected $response;
 
-		protected $base_dir;
-		protected $config_dir;
+		/**
+		 * @var string
+		 */
+		protected string $base_dir;
+		/**
+		 * @var string
+		 */
+		protected string $config_dir;
 
-		protected $db;
+		/**
+		 * @var Dabbie
+		 */
+		protected Dabbie $db;
 
-		protected $app_title;
-		protected $pass_salt;
-		protected $token_salt;
+		/**
+		 * @var string
+		 */
+		protected string $app_title;
+		/**
+		 * @var string
+		 */
+		protected string $pass_salt;
+		/**
+		 * @var string
+		 */
+		protected string $token_salt;
 
+		/**
+		 * @var Router
+		 */
 		public Router $router;
 
-		public static function getInstance() {
+		/**
+		 * @return App
+		 */
+		public static function getInstance(): App {
 
 			static::$instance = static::$instance ?? new static();
 			return static::$instance;
@@ -134,31 +176,47 @@
 			}
 		}
 
-		function db() {
+		/**
+		 * @return Dabbie
+		 */
+		function db(): Dabbie {
 			return $this->db;
 		}
 
+		/**
+		 * @return mixed
+		 */
 		function getRequest() {
 			return $this->request;
 		}
 
+		/**
+		 * @return mixed
+		 */
 		function getResponse() {
 			return $this->response;
 		}
 
+		/**
+		 * @return Router
+		 */
 		function getRouter(): Router {
 			return $this->router;
 		}
 
+		/**
+		 * @param $base_dir
+		 * @return void
+		 */
 		function setBaseDir($base_dir) {
 			$this->base_dir = $base_dir;
 		}
 
 		/**
 		 * Get base folder
-		 * @param string $path Path to append
+		 * @param string  $path Path to append
 		 * @param boolean $echo Whether to print the resulting string or not
-		 * @return string        The well-formed path
+		 * @return string       The well-formed path
 		 */
 		function baseDir(string $path = '', bool $echo = false): string {
 			$ret = sprintf('%s%s', $this->base_dir, $path);
@@ -170,10 +228,10 @@
 
 		/**
 		 * Log something to file
-		 * @param  mixed  $data     What to log
+		 * @param mixed  $data     What to log
 		 * @param string $log_file Log name, without extension
 		 * @return void
-         */
+		 */
 		public static function log_to_file($data, string $log_file = '') {
 			$app = App::getInstance();
 
@@ -199,7 +257,7 @@
 		function toAscii(string $str, array $replace = [], string $delimiter = '-'): string {
 			setlocale(LC_ALL, 'en_US.UTF8');
 			# Remove spaces
-			if( !empty($replace) ) {
+			if(!empty($replace)) {
 				$str = str_replace($replace, ' ', $str);
 			}
 			# Remove non-ascii characters
@@ -208,10 +266,16 @@
 			$clean = preg_replace("/[^a-zA-Z\d\/_|+ -]/", '', $clean);
 			$clean = strtolower(trim($clean, '-'));
 			# Remove other unwanted characters
-            return preg_replace("/[\/_|+ -]+/", $delimiter, $clean);
+			return preg_replace("/[\/_|+ -]+/", $delimiter, $clean);
 		}
 
-		function slugify($str, $replace = [], $delimiter = '-'): string {
+		/**
+		 * @param string $str
+		 * @param array  $replace
+		 * @param string $delimiter
+		 * @return string
+		 */
+		function slugify(string $str, array $replace = [], string $delimiter = '-'): string {
 			return $this->toAscii($str, $replace, $delimiter);
 		}
 
@@ -224,9 +288,9 @@
 		function hashToken($action, bool $echo = false): string {
 			if(is_array($action)) {
 				$action_str = implode('', $action);
-				$ret = md5($this->token_salt.$action_str);
+				$ret = md5($this->token_salt . $action_str);
 			} else {
-				$ret = md5($this->token_salt.$action);
+				$ret = md5($this->token_salt . $action);
 			}
 			if($echo) echo $ret;
 			return $ret;
@@ -239,7 +303,7 @@
 		 * @return string           The hashed password
 		 */
 		function hashPassword(string $password, bool $echo = false): string {
-			$ret = md5($this->pass_salt.$password);
+			$ret = md5($this->pass_salt . $password);
 			if($echo) echo $ret;
 			return $ret;
 		}
@@ -262,7 +326,9 @@
 		 * @param boolean $prepend      Whether to add the listener at the beginning or the end
 		 */
 		function registerHook(string $hook, string $functionName, bool $prepend = false) {
-			if(!isset( $this->hooks[$hook] )) $this->hooks[$hook] = [];
+
+			if(!isset($this->hooks)) $this->hooks = [];
+			if(!isset($this->hooks[$hook])) $this->hooks[$hook] = [];
 			if($prepend) array_unshift($this->hooks[$hook], $functionName); else {
 				$this->hooks[$hook][] = $functionName;
 			}
@@ -275,10 +341,10 @@
 		 * @return array|false   The processed data or the same data if no callbacks were found
 		 */
 		function executeHook(string $hook, $params = '') {
-			if(isset( $this->hooks[$hook] )) {
+			if(isset($this->hooks[$hook])) {
 				$hooks = $this->hooks[$hook];
 				$ret = [];
-				foreach ($hooks as $hook) {
+				foreach($hooks as $hook) {
 					$ret[$hook] = call_user_func($hook, $params);
 				}
 				return $ret;
