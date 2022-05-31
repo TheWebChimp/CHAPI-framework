@@ -2,17 +2,21 @@
 
 	namespace CHAPI;
 
-	use CHAPI\Request;
-	use CHAPI\Response;
+	use Closure;
+	use Exception;
 
 	class Router {
 
 		private $base_url;
 
-		protected $routes;
-		protected $default_route;
-		protected $request;
-		protected $response;
+		protected array $routes;
+		protected string $default_route;
+		protected Request $request;
+		protected Response $response;
+		/**
+		 * @var array|bool
+		 */
+		private $matchedRoute;
 
 		function __construct($base_url = '') {
 			$this->routes = [];
@@ -24,10 +28,9 @@
 
 		/**
 		 * Display a generic error message
-		 * @param  string $message        The error message in HTML.
-		 * @param  string $response_code  The response code, default to 404
+		 * @param string $message The error message in HTML.
 		 */
-		function errorMessage($message, $response_code = 404) {
+		function errorMessage(string $message) {
 			$markup = '<!DOCTYPE html>
 						<html lang="en">
 							<head>
@@ -53,7 +56,7 @@
 		 * Get the default route
 		 * @return string The default route
 		 */
-		function getDefaultRoute() {
+		function getDefaultRoute(): string {
 			return $this->default_route;
 		}
 
@@ -61,23 +64,23 @@
 		 * Get base URL for router
 		 * @return string The base URL
 		 */
-		function getBaseUrl() {
+		function getBaseUrl(): string {
 			return $this->base_url;
 		}
 
 		/**
 		 * Get router request object
-		 * @return CHAPI\Request The request object
+		 * @return Request The request object
 		 */
-		function getRequest() {
+		function getRequest(): Request {
 			return $this->request;
 		}
 
 		/**
 		 * Get router response object
-		 * @return CHAPI\Response The response object
+		 * @return Response The response object
 		 */
-		function getResponse() {
+		function getResponse(): Response {
 			return $this->response;
 		}
 
@@ -85,68 +88,89 @@
 		 * Set the default route
 		 * @param string $route Full route, defaults to '/'
 		 */
-		function setDefaultRoute($route) {
+		function setDefaultRoute(string $route) {
 			$this->default_route = $route;
 		}
 
 		/**
 		 * Add a new route
-		 * @param  string  $route     Parametrized route
-		 * @param  string  $func      Handler function name
-		 * @param  boolean $method    Method in which to register the route
+		 * @param string  $route  Parametrized route
+		 * @param mixed   $func   Handler function name
+		 * @param boolean $method Method in which to register the route
 		 */
-		function add($route, $func, $method = '*') {
+		function add(string $route, $func, $method = '*') {
 			$this->routes["{$method}::{$route}"] = $func;
 		}
 
 		/**
 		 * Prepends a new route (puts it in first place of routes array).
-		 * @param  string  $route     Parametrized route
-		 * @param  string  $func      Handler function name
+		 * @param string $route  Parametrized route
+		 * @param mixed  $func   Handler function name
+		 * @param string $method Method to use, can be GET, POST, PUT, DELETE or * for all
 		 */
-		function prepend($route, $func, $method = '*') {
+		function prepend(string $route, string $func, string $method = '*') {
 			$this->routes = ["{$method}::{$route}" => $func] + $this->routes;
 		}
 
 		/**
 		 * Adds or prepends a route for all methods
-		 * @param  string   $route    Parametrized route
-		 * @param  string   $func     Handler function name
-		 * @param  boolean  $prepend  Determines if route should be prepended instead of added
+		 * @param string  $route   Parametrized route
+		 * @param mixed   $func    Handler function name
+		 * @param boolean $prepend Determines if route should be prepended instead of added
 		 */
-		function all($route, $func, $prepend = false) {
-			if($prepend) $this->prepend($route, $func, '*');
-			else $this->add($route, $func, '*');
+		function all(string $route, $func, bool $prepend = false) {
+			if($prepend) $this->prepend($route, $func); else $this->add($route, $func);
 		}
 
-		function get($route, $func, $prepend = false) {
-			if($prepend) $this->prepend($route, $func, 'get');
-			else $this->add($route, $func, 'get');
+		/**
+		 * @param      $route
+		 * @param      $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function get($route, $func, bool $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'get'); else $this->add($route, $func, 'get');
 		}
 
-		function post($route, $func, $prepend = false) {
-			if($prepend) $this->prepend($route, $func, 'post');
-			else $this->add($route, $func, 'post');
+		/**
+		 * @param      $route
+		 * @param      $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function post($route, $func, bool $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'post'); else $this->add($route, $func, 'post');
 		}
 
-		function put($route, $func, $prepend = false) {
-			if($prepend) $this->prepend($route, $func, 'put');
-			else $this->add($route, $func, 'put');
+		/**
+		 * @param      $route
+		 * @param      $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function put($route, $func, bool $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'put'); else $this->add($route, $func, 'put');
 		}
 
-		function delete($route, $func, $prepend = false) {
-			if($prepend) $this->prepend($route, $func, 'delete');
-			else $this->add($route, $func, 'delete');
+		/**
+		 * @param      $route
+		 * @param      $func
+		 * @param bool $prepend
+		 * @return void
+		 */
+		function delete($route, $func, bool $prepend = false) {
+			if($prepend) $this->prepend($route, $func, 'delete'); else $this->add($route, $func, 'delete');
 		}
 
 		/**
 		 * Removes the specified route
-		 * @param  string $route Parametrized route
+		 * @param string $route Parametrized route
+		 * @param string $method
 		 * @return boolean       True if the route was found and removed, false otherwise
 		 */
-		function remove($route) {
-			if ( $this->isRoute($route) ) {
-				unset( $this->routes[$route] );
+		function remove(string $route, string $method): bool {
+			if($this->isRoute($route, $method)) {
+				unset($this->routes["{$method}::{$route}"]);
 				return true;
 			}
 			return false;
@@ -154,19 +178,19 @@
 
 		/**
 		 * Checks whether a given route exists or not
-		 * @param  string $route  Parametrized route
-		 * @param  string $method Method of the route
+		 * @param string $route  Parametrized route
+		 * @param string $method Method of the route
 		 * @return boolean       True if the route exists, false otherwise
 		 */
-		function isRoute($route, $method) {
-			return isset( $this->routes["{$method}::{$route}"] );
+		function isRoute(string $route, string $method): bool {
+			return isset($this->routes["{$method}::{$route}"]);
 		}
 
 		/**
 		 * Get the registered routes
 		 * @return array The registered routes
 		 */
-		function getRoutes() {
+		function getRoutes(): array {
 			return $this->routes;
 		}
 
@@ -174,7 +198,7 @@
 		 * Retrieves the current request URI
 		 * @return string The current request URI
 		 */
-		function getCurrentUrl() {
+		function getCurrentUrl(): string {
 
 			# Routing stuff, first get the base url
 			$base_url = trim($this->getBaseUrl(), '/');
@@ -184,34 +208,32 @@
 
 			# Now remove the path
 			$segments = explode('/', $domain, 2);
-			if (count($segments) > 1) {
+			if(count($segments) > 1) {
 				$domain = array_pop($segments);
 			}
 
 			# Get the request and remove the domain
 			$request_uri = trim(rawurldecode($_SERVER['REQUEST_URI']), '/');
 
-			$request_uri = preg_replace("/".str_replace('/', '\/', $domain)."/", '', $request_uri, 1);
-			$request_uri = ltrim($request_uri, '/');
-
-			return $request_uri;
+			$request_uri = preg_replace("/" . str_replace('/', '\/', $domain) . "/", '', $request_uri, 1);
+			return ltrim($request_uri, '/');
 		}
 
 		/**
 		 * Shortcut / Helper function that registers a route for 404
-		 * @param  function $fn  Function to respond to 404 route
+		 * @param Closure $fn Function to respond to 404 route
 		 */
-		function set404($fn) {
+		function set404(Closure $fn) {
 			$this->add('404', function() use ($fn) {
 
 				$this->response->setStatus(404);
 				$fn();
-			}, '*');
+			});
 		}
 
 		/**
 		 * Removes all the registered routes
-		 * @return nothing
+		 * @return void
 		 */
 		function clearRoutes() {
 			$this->routes = [];
@@ -219,16 +241,14 @@
 
 		/**
 		 * Tries to match the given route with one of the registered handlers and process it
-		 * @param  string $route  The route to match
+		 * @param string $spec_route The route to match
 		 * @return boolean        TRUE if the route matched with a handler, FALSE otherwise
 		 */
-		function match($spec_route) {
+		function match(string $spec_route) {
 			$ret = false;
 			# And try to match the route with the registered ones
 			$matches = [];
 			$cur_method = $this->request->getMethod();
-
-			$matched_route = false;
 
 			foreach($this->routes as $route => $handler) {
 
@@ -245,7 +265,7 @@
 				$pattern = "~^{$route}$~";
 
 				//Route is matched
-				if ( preg_match($pattern, $spec_route, $matches) == 1) {
+				if(preg_match($pattern, $spec_route, $matches) == 1) {
 
 					array_shift($matches);
 					$ret = ['route' => $route, 'handler' => $handler, 'params' => $matches];
@@ -260,7 +280,7 @@
 		 * Processes current request
 		 * @return boolean TRUE if routing has succeeded, FALSE otherwise
 		 */
-		function routeRequest() {
+		function routeRequest(): bool {
 			$ret = false;
 
 			# Get the current URL
@@ -279,7 +299,7 @@
 			$cur_route = rtrim($cur_route, '/');
 
 			# Make sure we have a valid route
-			if ( empty($cur_route) ) {
+			if(empty($cur_route)) {
 				$cur_route = $this->default_route;
 			}
 
@@ -295,13 +315,11 @@
 
 					call_user_func_array($route['handler'], $route['params']);
 					$ret = true;
-
-				} catch(\Exception $e) {
+				} catch(Exception $e) {
 
 					$this->response->setStatus('500');
 					$this->response->ajaxRespond('error', [], "Router Error: Error handling route {$route['route']} on file " . $e->getFile() . " on line " . $e->getLine() . ": " . $e->getMessage());
 				}
-
 			} else {
 
 				//Check if we have a 404 route set
@@ -310,10 +328,9 @@
 					call_user_func_array($this->getRoutes()['*::404'], []);
 					$this->response->setStatus('404');
 					$ret = true;
-
 				} else {
 
-					$this->errorMessage('Route not found', 404);
+					$this->errorMessage('Route not found');
 					$this->response->setStatus('404');
 				}
 			}
@@ -324,4 +341,3 @@
 			return $ret;
 		}
 	}
-?>

@@ -1,24 +1,29 @@
 {
-	"name": "webchimp/chapi",
-	"description": "CHIMP API",
-	"type": "project",
-	"require": {
-		"webchimp/dabbie": "dev-main",
-		"webchimp/norm": ">=2.0",
-		"firebase/php-jwt": "^5.5",
-		"php-amqplib/php-amqplib": "^3.2"
-	},
-	"license": "MIT",
-	"autoload": {
-		"psr-4": {
-			"CHAPI\\": "src/"
-		}
-	},
-	"authors": [
-		{
-			"name": "Rodrigo Tejero",
-			"email": "rodrigo.tejero@chimp.mx"
-		}
-	],
-	"minimum-stability": "stable"
+  "name": "webchimp/chapi",
+  "description": "CHIMP API",
+  "type": "project",
+  "require": {
+    "webchimp/dabbie": "dev-main",
+    "webchimp/norm": ">=2.0",
+    "firebase/php-jwt": "^5.5",
+    "php-amqplib/php-amqplib": "^3.2",
+    "ext-iconv": "*",
+    "ext-json": "*"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "CHAPI\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Rodrigo Tejero",
+      "email": "rodrigo.tejero@chimp.mx"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require-dev": {
+    "phpstan/phpstan": "^1.7"
+  }
 }

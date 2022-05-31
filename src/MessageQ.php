@@ -1,16 +1,31 @@
 <?php
+
 	namespace CHAPI;
 
+	use Exception;
 	use PhpAmqpLib\Connection\AMQPStreamConnection;
 	use PhpAmqpLib\Message\AMQPMessage;
 
 	class MessageQ {
 
-		public $connection;
+		/**
+		 * @var AMQPStreamConnection
+		 */
+		public AMQPStreamConnection $connection;
+		/**
+		 * @var
+		 */
 		public $channel;
-		public $queue;
+		/**
+		 * @var string
+		 */
+		public string $queue;
 
-		static function newInstance($queue = 'base_queue') {
+		/**
+		 * @param string $queue
+		 * @return MessageQ
+		 */
+		static function newInstance(string $queue = 'base_queue'): MessageQ {
 			$new = new self();
 
 			$new->queue = $queue;
@@ -21,22 +36,26 @@
 			return $new;
 		}
 
-		function sendMessage($data) {
+		/**
+		 * @param $data
+		 * @return bool
+		 */
+		function sendMessage($data): bool {
 
-			$msg = new AMQPMessage(
-				$data,
-				[ 'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT ]
-			);
+			$msg = new AMQPMessage($data, ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]);
 
 			$this->channel->basic_publish($msg, '', $this->queue);
 			return true;
 		}
 
-		function close() {
+		/**
+		 * @return bool
+		 * @throws Exception
+		 */
+		function close(): bool {
 
 			$this->channel->close();
 			$this->connection->close();
 			return true;
 		}
 	}
-?>
