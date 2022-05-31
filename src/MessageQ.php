@@ -1,4 +1,5 @@
 <?php
+
 	namespace CHAPI;
 
 	use Exception;
@@ -41,10 +42,7 @@
 		 */
 		function sendMessage($data): bool {
 
-			$msg = new AMQPMessage(
-				$data,
-				[ 'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT ]
-			);
+			$msg = new AMQPMessage($data, ['delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]);
 
 			$this->channel->basic_publish($msg, '', $this->queue);
 			return true;

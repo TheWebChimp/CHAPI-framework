@@ -22,9 +22,9 @@
 		 */
 		public string $message;
 		/**
-		 * @var array
+		 * @var mixed
 		 */
-		public array $data;
+		public $data;
 		/**
 		 * @var array
 		 */
@@ -50,7 +50,7 @@
 		 */
 		public $response;
 		/**
-		 * @var array|string|string[]
+		 * @var mixed
 		 */
 		public $plural;
 		/**
@@ -58,7 +58,7 @@
 		 */
 		public string $singular;
 		/**
-		 * @var array|string|string[]
+		 * @var mixed
 		 */
 		public $endpoint;
 		/**
@@ -142,6 +142,7 @@
 		}
 
 		/**
+		 * Adds a condition to based on the key given
 		 * @param $key
 		 * @param bool $condition
 		 * @return false|string
@@ -160,6 +161,7 @@
 		}
 
 		/**
+		 * Sets up the basic routes for a magic endpoint
 		 * @return void
 		 */
 		function setupRoutes() {
@@ -218,6 +220,7 @@
 		}
 
 		/**
+		 * Checks if the bearer token is present and if its present checks for user existence
 		 * @return void
 		 */
 		function requireJWT() {
@@ -232,7 +235,9 @@
 					$payload = JWT::decode($token, new Key($app->getGlobal('jwt_secret'), 'HS256'));
 
 					if($payload->exp >= time()) {
-						$user = \Users::getById($payload->uid);
+
+						$user = class_exists('User') ? \Users::getById($payload->uid) : false;
+
 						if($user) {
 							if($user->status == 'Active') {
 								$ret = $user->id;
@@ -265,6 +270,7 @@
 		}
 
 		/**
+		 * Adds a route to the global router
 		 * @param $route
 		 * @param $functionName
 		 * @param string $method
@@ -275,6 +281,7 @@
 		}
 
 		/**
+		 * Respond the endpoint as ajax
 		 * @return void
 		 */
 		function respond() {
@@ -283,6 +290,7 @@
 		}
 
 		/**
+		 * Gets an item bases on id, function to be overridden by child classes
 		 * @param $id
 		 * @param array $args
 		 * @return mixed
@@ -292,17 +300,18 @@
 		}
 
 		/**
-		 * @param $id
+		 * Gets all items in an array of ids
+		 * @param $ids
 		 * @param $args
 		 * @return mixed
 		 */
-		function allItemInId($id, $args) {
-			return $this->plural::allInId($id, $args);
+		function allItemInId($ids, $args) {
+			return $this->plural::allInId($ids, $args);
 		}
 
 		/**
 		 * @param $item
-		 * @return false|mixed
+		 * @return mixed
 		 * @throws Exception
 		 */
 		function upsert($item) {

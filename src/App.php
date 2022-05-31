@@ -3,8 +3,8 @@
 	 * app.inc.php
 	 * This class is the core of CHAPI
 	 *
-	 * Version: 	1.0
-	 * Author(s):	Rodrigo Tejero <github.com/webchimp>
+	 * Version:    1.0
+	 * Author(s):  Rodrigo Tejero <github.com/webchimp>
 	 */
 
 	namespace CHAPI;
@@ -119,7 +119,7 @@
 			$settings['shared'] = parse_ini_file($config_dir . '/config.shared.ini', true, INI_SCANNER_TYPED);
 			$this->globals = $settings['shared'];
 
-			$settings[PROFILE] =  @parse_ini_file($config_dir . '/config.' . PROFILE . '.ini', true, INI_SCANNER_TYPED);
+			$settings[PROFILE] = @parse_ini_file($config_dir . '/config.' . PROFILE . '.ini', true, INI_SCANNER_TYPED);
 			$this->profile = $settings[PROFILE];
 
 			$this->request = new Request();
@@ -153,7 +153,7 @@
 
 			//Including all the models and endpoints registered
 
-			foreach (glob($this->baseDir() . '/app/{model,endpoint}/*.php', GLOB_BRACE) as $filename) {
+			foreach(glob($this->baseDir() . '/app/{model,endpoint}/*.php', GLOB_BRACE) as $filename) {
 				include $filename;
 
 				//Check each endpoint
@@ -374,7 +374,7 @@
 		 */
 		function getGlobal(string $key, string $default = '') {
 			$ret = $default;
-			if(isset( $this->globals[$key] )) {
+			if(isset($this->globals[$key])) {
 				$ret = $this->globals[$key];
 			}
 			return $ret;

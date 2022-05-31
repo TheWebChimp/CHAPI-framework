@@ -2,10 +2,10 @@
 
 	/**
 	 * Tokenizr
-	 * @author 	webchimp <github.com/webchimp>
-	 * @version 2.0
-	 * @license MIT
-	 * @example Basic usage:
+	 * @author    webchimp <github.com/webchimp>
+	 * @version   2.0
+	 * @license   MIT
+	 * @example   Basic usage:
 	 *
 	 *    Use getToken() to tokenize your data. It will return a string with the source data and its message digest:
 	 *
@@ -36,13 +36,13 @@
 
 		/**
 		 * Generate a token
-		 * @param mixed $data String or array with data to hash
-		 * @param $key
+		 * @param mixed  $data    String or array with data to hash
+		 * @param        $key
 		 * @param string $divider Divider character
-		 * @return string          The resulting token
+		 * @return string         The resulting token
 		 */
 		static function getToken($data, $key, string $divider = '.'): string {
-			if ( is_array($data) ) {
+			if(is_array($data)) {
 				$data = http_build_query($data);
 				$ret = self::getToken($data, $key);
 			} else {
@@ -56,14 +56,14 @@
 		 * Check whether a given token is valid or not
 		 * @param string $token   The token to check
 		 * @param string $divider Divider character
-		 * @return bool            TRUE if the token is valid, FALSE otherwise
+		 * @return bool           TRUE if the token is valid, FALSE otherwise
 		 */
 		static function checkToken(string $token, $key, string $divider = '.'): bool {
 			$ret = false;
 			$parts = explode($divider, $token);
 			$data = get_item($parts, 0);
 			$hash = get_item($parts, 1);
-			if ($data && $hash) {
+			if($data && $hash) {
 				$check = hash_hmac('sha256', $data, $key);
 				$ret = $hash === $check;
 			}
@@ -72,14 +72,14 @@
 
 		/**
 		 * Retrieve token data
-		 * @param string $token The token to get data from
+		 * @param string $token   The token to get data from
 		 * @param string $divider Divider character
-		 * @return mixed           The retrieved data, either a string or an array
+		 * @return mixed          The retrieved data, either a string or an array
 		 */
 		static function getData(string $token, string $divider = '.') {
 			$parts = explode($divider, $token);
 			$data = get_item($parts, 0);
-			if ( strpos($data, '&') ) {
+			if(strpos($data, '&')) {
 				parse_str($data, $items);
 				$ret = $items;
 			} else {

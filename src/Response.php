@@ -130,12 +130,12 @@
 		/**
 		 * Flush headers and response body
 		 * @param string      $result     Readable result for response (success or error are the most common)
-		 * @param array|null  $data       Array with data to respond
+		 * @param mixed       $data       Array with data to respond
 		 * @param string|null $message    Readable message for the response
 		 * @param array       $properties Extra information to pass that should be outside data
 		 * @return boolean                This will always return true
 		 */
-		function ajaxRespond(string $result, array $data = null, string $message = null, array $properties = []): bool {
+		function ajaxRespond(string $result, $data = null, string $message = null, array $properties = []): bool {
 			$ret = [];
 			$ret = array_merge($properties, $ret);
 			$ret['result'] = $result;
