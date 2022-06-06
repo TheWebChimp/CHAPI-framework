@@ -108,7 +108,7 @@
 		 * @param mixed  $func   Handler function name
 		 * @param string $method Method to use, can be GET, POST, PUT, DELETE or * for all
 		 */
-		function prepend(string $route, string $func, string $method = '*') {
+		function prepend(string $route, $func, string $method = '*') {
 			$this->routes = ["{$method}::{$route}" => $func] + $this->routes;
 		}
 
