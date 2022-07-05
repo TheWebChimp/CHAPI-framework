@@ -151,10 +151,17 @@
 			NORM::setDBHandler($this->db);
 			CROOD::setDBHandler($this->db);
 
+			//Including extra files
+
+			if(file_exists($this->baseDir() . '/app/traits.inc.php')) {
+
+				include_once($this->baseDir() . '/app/traits.inc.php');
+			}
+
 			//Including all the models and endpoints registered
 
 			foreach(glob($this->baseDir() . '/app/{model,endpoint}/*.php', GLOB_BRACE) as $filename) {
-				include $filename;
+				include_once $filename;
 
 				//Check each endpoint
 				if(strpos(basename($filename), '.endpoint') !== false) {
