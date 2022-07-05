@@ -414,6 +414,18 @@
 				}
 			}
 
+			// Passing args via URL
+			if($url_args = $this->request->get('args')) {
+
+				$args = array_merge($args, $url_args);
+			}
+
+			// Specifically passing PDO Args
+			if($pdo = $this->request->get('pdo')) {
+
+				$args['args'] = array_merge($args['args'], $pdo);
+			}
+
 			//$args['debug'] = 1;
 
 			// Conditions Filter
@@ -634,6 +646,18 @@
 
 				if($fetch_metas != 1) $fetch_metas = explode(',', $fetch_metas);
 				$args['args']['fetch_metas'] = $fetch_metas;
+			}
+
+			// Passing args via URL
+			if($url_args = $this->request->get('args')) {
+
+				$args = array_merge($args, $url_args);
+			}
+
+			// Specifically passing PDO Args
+			if($pdo = $this->request->get('pdo')) {
+
+				$args['args'] = array_merge($args['args'], $pdo);
 			}
 
 			$item = $multiple ? $this->allItemInId(explode(',', $id), $args) : $this->getItemById($id, $args);
