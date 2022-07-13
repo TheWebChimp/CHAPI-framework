@@ -144,10 +144,10 @@
 		/**
 		 * Adds a condition to based on the key given
 		 * @param $key
-		 * @param bool $condition
+		 * @param string|bool $condition
 		 * @return false|string
 		 */
-		static function addCondition($key, bool $condition = false) {
+		static function addCondition($key, $condition = false) {
 			global $app;
 			$request = $app->getRequest();
 
