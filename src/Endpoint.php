@@ -220,6 +220,27 @@
 		}
 
 		/**
+		 * Returns the ID of the bearer token
+		 * @return int|false
+		 */
+		function getBearerUser() {
+			global $app;
+			$token = $this->request->getBearerToken();
+
+			if($token) {
+				try {
+					$payload = JWT::decode($token, new Key($app->getGlobal('jwt_secret'), 'HS256'));
+
+					$user = class_exists('User') ? \Users::getById($payload->uid) : false;
+					return $user->id;
+
+				} catch(Exception $e) {}
+			}
+
+			return false;
+		}
+
+		/**
 		 * Checks if the bearer token is present and if its present checks for user existence
 		 * @return void
 		 */
