@@ -1,7 +1,7 @@
 {
   "name": "webchimp/chapi",
   "description": "CHIMP API",
-  "version": "1.0.2.1",
+  "version": "1.0.2.2",
   "type": "project",
   "require": {
     "webchimp/dabbie": "dev-main",
