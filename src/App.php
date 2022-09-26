@@ -162,7 +162,9 @@
 
 			foreach(glob($this->baseDir() . '/app/{model,endpoint}/*.php', GLOB_BRACE) as $filename) {
 				include_once $filename;
+			}
 
+			foreach(glob($this->baseDir() . '/app/{model,endpoint}/*.php', GLOB_BRACE) as $filename) {
 				//Check each endpoint
 				if(strpos(basename($filename), '.endpoint') !== false) {
 
