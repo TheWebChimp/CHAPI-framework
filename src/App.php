@@ -270,7 +270,8 @@
 				$str = str_replace($replace, ' ', $str);
 			}
 			# Remove non-ascii characters
-			$clean = iconv('UTF-8', 'ASCII//TRANSIT', $str);
+			$clean = @iconv('UTF-8', 'ASCII//TRANSIT', $str);
+			$clean = $clean ?: $str;
 			# Remove non-alphanumeric characters and lowercase the result
 			$clean = preg_replace("/[^a-zA-Z\d\/_|+ -]/", '', $clean);
 			$clean = strtolower(trim($clean, '-'));
