@@ -336,6 +336,8 @@
 		 * @throws Exception
 		 */
 		function upsert($item) {
+
+			global $app;
 			$metas = $this->request->post('metas');
 
 			try {
@@ -359,6 +361,8 @@
 							$item->updateMeta($name, $value);
 						}
 					}
+
+					$app->executeHook(strtolower($this->singular) . '.upsert', $item->id);
 
 					return $item;
 				}
