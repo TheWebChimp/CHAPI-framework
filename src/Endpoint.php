@@ -486,7 +486,7 @@
 		 * @return void
 		 */
 		function create() {
-			$this->requireJWT();
+			if($this->createJWT) $this->requireJWT();
 
 			try {
 				$item = $this->upsert(new $this->singular);
@@ -514,7 +514,7 @@
 		 */
 		function update($id) {
 
-			$this->requireJWT();
+			if($this->updateJWT) $this->requireJWT();
 
 			$args = $this->request->put('args', []);
 			$item = $this->getItemById($id, $args);
@@ -659,7 +659,8 @@
 		 */
 		function single($id) {
 
-			$this->requireJWT();
+			if($this->singleJWT) $this->requireJWT();
+
 			$multiple = !!preg_match('/(.*),(.*)/', $id);
 
 			$args = ['args' => []];
