@@ -242,7 +242,7 @@
 
 		/**
 		 * Checks if the bearer token is present and if its present checks for user existence
-		 * @return void
+		 * @return mixed
 		 */
 		function requireJWT() {
 			global $app;
@@ -558,7 +558,7 @@
 		 */
 		function delete($id) {
 
-			$this->requireJWT();
+			if($this->deleteJWT) $this->requireJWT();
 			$multiple = !!preg_match('/(.*),(.*)/', $id);
 
 			$ids = $multiple ? explode(',', $id) : [];

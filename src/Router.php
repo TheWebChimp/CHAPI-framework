@@ -16,7 +16,7 @@
 		/**
 		 * @var array|bool
 		 */
-		private $matchedRoute;
+		private $matched_route;
 
 		function __construct($base_url = '') {
 			$this->routes = [];
@@ -311,7 +311,7 @@
 
 				try {
 
-					$this->matchedRoute = $route;
+					$this->matched_route = $route;
 
 					call_user_func_array($route['handler'], $route['params']);
 					$ret = true;

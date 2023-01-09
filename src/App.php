@@ -91,7 +91,7 @@
 		 *
 		 * @return void
 		 */
-		protected function __construct() {}
+		protected function __construct() { }
 
 		/**
 		 * @throws DabbieException
@@ -244,12 +244,12 @@
 		public static function log_to_file($data, string $log_file = '') {
 			$app = App::getInstance();
 
-			if (!file_exists($app->baseDir('/log'))) {
+			if(!file_exists($app->baseDir('/log'))) {
 				mkdir($app->baseDir('/log'), 0777, true);
 			}
 
 			$log_file = $log_file ?: date('Y-m-d');
-			$file = fopen( $app->baseDir("/log/{$log_file}.log"), 'a');
+			$file = fopen($app->baseDir("/log/{$log_file}.log"), 'a');
 			$date = date('Y-m-d H:i:s');
 			if(is_array($data) || is_object($data)) $data = json_encode($data);
 			fwrite($file, "{$date} - {$data}\n");
@@ -370,7 +370,7 @@
 		 */
 		function getOption(string $key, string $default = '') {
 			$ret = $default;
-			if(isset( $this->profile[$key] )) {
+			if(isset($this->profile[$key])) {
 				$ret = $this->profile[$key];
 			}
 			return $ret;
@@ -407,12 +407,12 @@
 		 *
 		 * @return void
 		 */
-		private function __clone() {}
+		private function __clone() { }
 
 		/**
 		 * Private serialize method to prevent serializing of the *App* instance.
 		 *
 		 * @return void
 		 */
-		private function __wakeup() {}
+		private function __wakeup() { }
 	}

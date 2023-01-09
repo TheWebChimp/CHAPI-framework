@@ -121,7 +121,7 @@
 		function respond(): bool {
 			http_response_code($this->status);
 			# Send headers
-			foreach ($this->headers as $header => $value) header("{$header}: {$value}");
+			foreach($this->headers as $header => $value) header("{$header}: {$value}");
 			# Send response
 			echo $this->getBody();
 			return true;
@@ -140,14 +140,14 @@
 			$ret = array_merge($properties, $ret);
 			$ret['result'] = $result;
 			$ret['status'] = $this->getStatus();
-			if ($data !== null) {
+			if($data !== null) {
 				$ret['data'] = $data;
 			}
-			if ($message) {
+			if($message) {
 				$ret['message'] = $message;
 			}
 			$this->setHeader('Content-Type', 'application/json');
-			$this->setBody( json_encode($ret) );
+			$this->setBody(json_encode($ret));
 			$this->respond();
 			return true;
 		}
