@@ -142,14 +142,16 @@
 
 			//$this->router->all('.*', 'CHAPI\App::routeRequest');
 
-			$this->db = new Dabbie($this->profile['database']);
+			if(isset($this->profile['database'])) {
+
+				$this->db = new Dabbie($this->profile['database']);
+				NORM::setDBHandler($this->db);
+				CROOD::setDBHandler($this->db);
+			}
 
 			$this->pass_salt = $this->globals['pass_salt'];
 			$this->token_salt = $this->globals['token_salt'];
 			$this->app_title = $this->globals['app_name'];
-
-			NORM::setDBHandler($this->db);
-			CROOD::setDBHandler($this->db);
 
 			//Including extra files
 
